@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カスタム時計（現在時刻同期機能付き）</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* コントローラーのスタイル */
+        .controls {
+            position: absolute;
+            top: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            backdrop-filter: blur(5px);
+            z-index: 10;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        .mode-group {
+            border-right: 1px solid #555;
+            padding-right: 15px;
+        }
+        .mode-label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        input[type="number"], input[type="time"] {
+            background: #222;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        button {
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #ccc;
+        }
+        /* 現在時刻ボタンを目立たせる */
+        .btn-now {
+            background: #00ff66;
+            color: #000;
+        }
+        .btn-now:hover {
+            background: #00cc55;
+        }
+
+        /* 時計の表示 */
+        .time {
+            font-size: 15vw;
+            font-weight: bold;
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- コントローラー部分 -->
+    <div class="controls">
+        <!-- モード切り替え -->
+        <div class="control-group mode-group">
+            <label class="mode-label">
+                <input type="radio" name="clockMode" value="normal" onchange="toggleMode()"> 普通の時計
+            </label>
+            <label class="mode-label">
+                <input type="radio" name="clockMode" value="speed" checked onchange="toggleMode()"> 倍速モード
+            </label>
+        </div>
+
+        <div class="control-group" id="speedSettingGroup">
+            <label for="speed">進む速さ (1秒で進む秒数):</label>
+            <!-- 入力値が変わったときにチェックするイベント(oninput)を追加 -->
+            <input type="number" id="speed" value="15" min="-3600" max="3600" style="width: 60px;" oninput="checkSpeedValue()"> 秒
+        </div>
+        
+        <div class="control-group">
+            <button onclick="syncToCurrentTime()" class="btn-now">現在時刻に合わせる</button>
+            <label for="customTime">または指定:</label>
+            <input type="time" id="customTime" step="1">
+            <button onclick="setTime()">設定</button>
+        </div>
+    </div>
+
+    <!-- 時計表示部分 -->
+    <div id="clock" class="time">00:00:00</div>
+
+    <script>
+        let virtualTime = new Date();
+        let speedInput = document.getElementById('speed');
+        let speedSettingGroup = document.getElementById('speedSettingGroup');
+        let isTimeUp = false;
+
+        // 電子音を生成して鳴らす関数
+        function playAlarmSound() {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const audioCtx = new AudioContext();
+                
+                const times = [0, 0.2, 0.4];
+                times.forEach(delay => {
+                    const oscillator = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(880, audioCtx.currentTime + delay);
+                    
+                    gainNode.gain.setValueAtTime(0, audioCtx.currentTime + delay);
+                    gainNode.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + delay + 0.02);
+                    gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime + delay + 0.12);
+                    gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + delay + 0.15);
+                    
+                    oscillator.start(audioCtx.currentTime + delay);
+                    oscillator.stop(audioCtx.currentTime + delay + 0.15);
+                });
+            } catch (e) {
+                console.error("オーディオの再生に失敗しました:", e);
+            }
+        }
+
+        // 入力された「進む速さ」が正の数（プラス）になったら自動で停止を解除する関数
+        function checkSpeedValue() {
+            const currentSpeed = parseInt(speedInput.value);
+            // 数値が正しく入力されており、かつ0以上（正の数）であれば再始動
+            if (!isNaN(currentSpeed) && currentSpeed >= 0) {
+                isTimeUp = false;
+            }
+        }
+
+        // 入力欄の初期値を現在の「時:分:00秒」にする関数
+        function updateInputPreset(dateObj) {
+            document.getElementById('customTime').value = 
+                `${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}:00`;
+        }
+
+        // 完全に「本物の現在時刻」に同期する関数
+        function syncToCurrentTime() {
+            const realNow = new Date();
+            virtualTime = new Date(realNow.getTime());
+            isTimeUp = false;
+            updateInputPreset(realNow);
+            updateClockDisplay();
+        }
+
+        // モード変更時に設定欄の表示を切り替える
+        function toggleMode() {
+            const mode = document.querySelector('input[name="clockMode"]:checked').value;
+            if (mode === 'normal') {
+                speedSettingGroup.style.opacity = '0.3';
+                speedInput.disabled = true;
+                isTimeUp = false; // 普通の時計モードに戻したときも動くように解除
+            } else {
+                speedSettingGroup.style.opacity = '1';
+                speedInput.disabled = false;
+                checkSpeedValue(); // 倍速モードの現在の数値に応じて状態を更新
+            }
+        }
+
+        // ユーザーが指定した時間に時計を合わせる関数
+        function setTime() {
+            const timeVal = document.getElementById('customTime').value;
+            if (!timeVal) return;
+            
+            const [h, m, s] = timeVal.split(':');
+            virtualTime.setHours(parseInt(h), parseInt(m), s ? parseInt(s) : 0);
+            isTimeUp = false;
+            updateClockDisplay();
+        }
+
+        // 表示だけを更新する関数
+        function updateClockDisplay() {
+            const hours = String(virtualTime.getHours()).padStart(2, '0');
+            const minutes = String(virtualTime.getMinutes()).padStart(2, '0');
+            const seconds = String(virtualTime.getSeconds()).padStart(2, '0');
+            document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        // 1秒ごとに時間を進めるメイン処理
+        function tick() {
+            // ストップフラグが立っている間は一切動かさない
+            if (isTimeUp) return;
+
+            const mode = document.querySelector('input[name="clockMode"]:checked').value;
+            let secondsToAdd = 1; 
+            
+            if (mode === 'speed') {
+                secondsToAdd = parseInt(speedInput.value);
+                if (isNaN(secondsToAdd)) secondsToAdd = 15;
+            }
+            
+            const oldDate = virtualTime.getDate();
+            virtualTime.setSeconds(virtualTime.getSeconds() + secondsToAdd);
+            const newDate = virtualTime.getDate();
+            
+            // マイナス秒（巻き戻し）のときだけの終了判定
+            if (secondsToAdd < 0) {
+                const isExactlyZero = (virtualTime.getHours() === 0 && virtualTime.getMinutes() === 0 && virtualTime.getSeconds() === 0);
+                const isDateChanged = (oldDate !== newDate);
+
+                if (isExactlyZero || isDateChanged) {
+                    if (!isExactlyZero) {
+                        virtualTime.setHours(0, 0, 0);
+                    }
+                    
+                    updateClockDisplay();
+                    isTimeUp = true; // ここで動かないようにロックが掛かる
+                    playAlarmSound();
+                    
+                    setTimeout(() => {
+                        alert("📢 00:00:00 に到達（通過）したため、時計を停止しました。プラスの秒数に変更すると再始動します。");
+                    }, 50);
+                    return;
+                }
+            }
+
+            updateClockDisplay();
+        }
+
+        // 起動時の初期化処理
+        const initNow = new Date();
+        virtualTime = new Date(initNow.getTime());
+        updateInputPreset(initNow);
+        updateClockDisplay();
+        toggleMode();
+        
+        // 1秒ごとに実行
+        setInterval(tick, 1000);
+    </script>
+
+</body>
+</html>
