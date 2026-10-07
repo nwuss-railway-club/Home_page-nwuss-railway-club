@@ -31,7 +31,15 @@
             align-items: center;
             backdrop-filter: blur(5px);
             z-index: 10;
+            transition: opacity 0.3s ease, transform 0.3s ease; /* なめらかに消えるアニメーション */
         }
+        /* コントローラーが非表示のときのスタイル */
+        .controls.hidden {
+            opacity: 0;
+            pointer-events: none; /* クリックできなくする */
+            transform: translateY(-20px);
+        }
+
         .control-group {
             display: flex;
             align-items: center;
@@ -67,7 +75,6 @@
         button:hover {
             background: #ccc;
         }
-        /* 現在時刻ボタンを目立たせる */
         .btn-now {
             background: #00ff66;
             color: #000;
@@ -76,18 +83,24 @@
             background: #00cc55;
         }
 
-        /* 時計の表示 */
+        /* 時計の表示（タップできるようにカーソルを指マークに変更） */
         .time {
             font-size: 15vw;
             font-weight: bold;
             font-variant-numeric: tabular-nums;
+            cursor: pointer;
+            user-select: none; /* 文字が青く選択されるのを防ぐ */
+        }
+        /* マウスを乗せたときに少し浮かび上がらせる（タップできる目印） */
+        .time:hover {
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
         }
     </style>
 </head>
 <body>
 
     <!-- コントローラー部分 -->
-    <div class="controls">
+    <div class="controls" id="controlsContainer">
         <!-- モード切り替え -->
         <div class="control-group mode-group">
             <label class="mode-label">
@@ -100,7 +113,6 @@
 
         <div class="control-group" id="speedSettingGroup">
             <label for="speed">進む速さ (1秒で進む秒数):</label>
-            <!-- 入力値が変わったときにチェックするイベント(oninput)を追加 -->
             <input type="number" id="speed" value="15" min="-3600" max="3600" style="width: 60px;" oninput="checkSpeedValue()"> 秒
         </div>
         
@@ -112,14 +124,20 @@
         </div>
     </div>
 
-    <!-- 時計表示部分 -->
-    <div id="clock" class="time">00:00:00</div>
+    <!-- 時計表示部分（クリックイベントを追加） -->
+    <div id="clock" class="time" onclick="toggleControls()">00:00:00</div>
 
     <script>
         let virtualTime = new Date();
         let speedInput = document.getElementById('speed');
         let speedSettingGroup = document.getElementById('speedSettingGroup');
+        let controlsContainer = document.getElementById('controlsContainer');
         let isTimeUp = false;
+
+        // 時刻をタップしたときにコントローラーの表示/非表示を切り替える関数
+        function toggleControls() {
+            controlsContainer.classList.toggle('hidden');
+        }
 
         // 電子音を生成して鳴らす関数
         function playAlarmSound() {
@@ -154,7 +172,6 @@
         // 入力された「進む速さ」が正の数（プラス）になったら自動で停止を解除する関数
         function checkSpeedValue() {
             const currentSpeed = parseInt(speedInput.value);
-            // 数値が正しく入力されており、かつ0以上（正の数）であれば再始動
             if (!isNaN(currentSpeed) && currentSpeed >= 0) {
                 isTimeUp = false;
             }
@@ -181,11 +198,11 @@
             if (mode === 'normal') {
                 speedSettingGroup.style.opacity = '0.3';
                 speedInput.disabled = true;
-                isTimeUp = false; // 普通の時計モードに戻したときも動くように解除
+                isTimeUp = false;
             } else {
                 speedSettingGroup.style.opacity = '1';
                 speedInput.disabled = false;
-                checkSpeedValue(); // 倍速モードの現在の数値に応じて状態を更新
+                checkSpeedValue();
             }
         }
 
@@ -210,7 +227,6 @@
 
         // 1秒ごとに時間を進めるメイン処理
         function tick() {
-            // ストップフラグが立っている間は一切動かさない
             if (isTimeUp) return;
 
             const mode = document.querySelector('input[name="clockMode"]:checked').value;
@@ -225,7 +241,6 @@
             virtualTime.setSeconds(virtualTime.getSeconds() + secondsToAdd);
             const newDate = virtualTime.getDate();
             
-            // マイナス秒（巻き戻し）のときだけの終了判定
             if (secondsToAdd < 0) {
                 const isExactlyZero = (virtualTime.getHours() === 0 && virtualTime.getMinutes() === 0 && virtualTime.getSeconds() === 0);
                 const isDateChanged = (oldDate !== newDate);
@@ -236,7 +251,7 @@
                     }
                     
                     updateClockDisplay();
-                    isTimeUp = true; // ここで動かないようにロックが掛かる
+                    isTimeUp = true;
                     playAlarmSound();
                     
                     setTimeout(() => {
