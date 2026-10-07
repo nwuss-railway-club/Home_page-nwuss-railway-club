@@ -31,12 +31,11 @@
             align-items: center;
             backdrop-filter: blur(5px);
             z-index: 10;
-            transition: opacity 0.3s ease, transform 0.3s ease; /* なめらかに消えるアニメーション */
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
-        /* コントローラーが非表示のときのスタイル */
         .controls.hidden {
             opacity: 0;
-            pointer-events: none; /* クリックできなくする */
+            pointer-events: none;
             transform: translateY(-20px);
         }
 
@@ -47,6 +46,11 @@
             font-size: 0.9rem;
         }
         .mode-group {
+            border-right: 1px solid #555;
+            padding-right: 15px;
+        }
+        /* サイズ変更グループの境界線 */
+        .size-group {
             border-right: 1px solid #555;
             padding-right: 15px;
         }
@@ -83,15 +87,15 @@
             background: #00cc55;
         }
 
-        /* 時計の表示（タップできるようにカーソルを指マークに変更） */
+        /* 時計の表示（初期の文字サイズをCSS変数で管理） */
         .time {
-            font-size: 15vw;
+            font-size: var(--clock-size, 15vw);
             font-weight: bold;
             font-variant-numeric: tabular-nums;
             cursor: pointer;
-            user-select: none; /* 文字が青く選択されるのを防ぐ */
+            user-select: none;
+            transition: font-size 0.1s ease; /* サイズ変更を滑らかに */
         }
-        /* マウスを乗せたときに少し浮かび上がらせる（タップできる目印） */
         .time:hover {
             text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
         }
@@ -111,6 +115,13 @@
             </label>
         </div>
 
+        <!-- 【新機能】文字サイズ変更ボタン -->
+        <div class="control-group size-group">
+            <span>文字サイズ:</span>
+            <button onclick="changeFontSize(-2)">小</button>
+            <button onclick="changeFontSize(2)">大</button>
+        </div>
+
         <div class="control-group" id="speedSettingGroup">
             <label for="speed">進む速さ (1秒で進む秒数):</label>
             <input type="number" id="speed" value="15" min="-3600" max="3600" style="width: 60px;" oninput="checkSpeedValue()"> 秒
@@ -124,7 +135,7 @@
         </div>
     </div>
 
-    <!-- 時計表示部分（クリックイベントを追加） -->
+    <!-- 時計表示部分 -->
     <div id="clock" class="time" onclick="toggleControls()">00:00:00</div>
 
     <script>
@@ -133,6 +144,20 @@
         let speedSettingGroup = document.getElementById('speedSettingGroup');
         let controlsContainer = document.getElementById('controlsContainer');
         let isTimeUp = false;
+        
+        // 初期サイズ（vw単位）
+        let currentSize = 15;
+
+        // 文字サイズを変更する関数
+        function changeFontSize(amount) {
+            currentSize += amount;
+            // 画面が崩れないように最小サイズ(5vw)と最大サイズ(30vw)を制限
+            if (currentSize < 5) currentSize = 5;
+            if (currentSize > 30) currentSize = 30;
+            
+            // CSS変数に新しいサイズを適用
+            document.documentElement.style.setProperty('--clock-size', currentSize + 'vw');
+        }
 
         // 時刻をタップしたときにコントローラーの表示/非表示を切り替える関数
         function toggleControls() {
