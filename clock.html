@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>カスタム統合時計（デジタル＆アナログ）</title>
+    <title>カスタム時計（現在時刻同期機能付き）</title>
     <style>
         body {
-            background-color: #0b0c10;
+            background-color: #000;
             color: #fff;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-family: sans-serif;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -23,15 +23,14 @@
         .controls {
             position: absolute;
             top: 20px;
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.1);
             padding: 15px;
-            border-radius: 12px;
+            border-radius: 8px;
             display: flex;
-            gap: 15px;
+            gap: 20px;
             align-items: center;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(5px);
             z-index: 10;
-            border: 1px solid rgba(255, 255, 255, 0.1);
             transition: opacity 0.3s ease, transform 0.3s ease;
         }
         .controls.hidden {
@@ -43,12 +42,17 @@
         .control-group {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             font-size: 0.9rem;
         }
-        .border-line {
-            border-right: 1px solid rgba(255,255,255,0.2);
-            padding-right: 12px;
+        .mode-group {
+            border-right: 1px solid #555;
+            padding-right: 15px;
+        }
+        /* サイズ変更グループの境界線 */
+        .size-group {
+            border-right: 1px solid #555;
+            padding-right: 15px;
         }
         .mode-label {
             cursor: pointer;
@@ -57,24 +61,23 @@
             gap: 4px;
         }
         input[type="number"], input[type="time"] {
-            background: #1f2833;
-            border: 1px solid #45f3ff;
+            background: #222;
+            border: 1px solid #555;
             color: #fff;
-            padding: 6px;
-            border-radius: 6px;
+            padding: 5px;
+            border-radius: 4px;
         }
         button {
             background: #fff;
             color: #000;
             border: none;
             padding: 6px 12px;
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
-            transition: background 0.2s;
         }
         button:hover {
-            background: #45f3ff;
+            background: #ccc;
         }
         .btn-now {
             background: #00ff66;
@@ -84,136 +87,29 @@
             background: #00cc55;
         }
 
-        /* デジタル時計のスタイル */
-        .digital-clock {
-            font-size: var(--digital-size, 15vw);
+        /* 時計の表示（初期の文字サイズをCSS変数で管理） */
+        .time {
+            font-size: var(--clock-size, 15vw);
             font-weight: bold;
             font-variant-numeric: tabular-nums;
             cursor: pointer;
             user-select: none;
-            transition: font-size 0.1s ease;
+            transition: font-size 0.1s ease; /* サイズ変更を滑らかに */
         }
-        .digital-clock:hover {
+        .time:hover {
             text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
         }
-
-        /* アナログ時計のスタイル */
-        .clock-face {
-            width: var(--analog-size, 420px);
-            height: var(--analog-size, 420px);
-            border: 12px solid #1f2833;
-            border-radius: 50%;
-            position: relative;
-            background: radial-gradient(circle, #151a21 0%, #0b0c10 100%);
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.6), 0 0 0 2px rgba(255,255,255,0.1);
-            cursor: pointer;
-            user-select: none;
-            transition: width 0.1s ease, height 0.1s ease;
-            box-sizing: border-box;
-            display: none;
-        }
-        .clock-face:hover {
-            box-shadow: 0 25px 50px rgba(69, 243, 255, 0.15), inset 0 0 20px rgba(0,0,0,0.6);
-        }
-
-        /* 目盛り線 */
-        .mark {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            left: 0;
-            top: 0;
-        }
-        .mark::after {
-            content: '';
-            position: absolute;
-            top: 8px;
-            left: 50%;
-            width: 2px;
-            height: 8px;
-            background: rgba(255,255,255,0.2);
-            transform: translateX(-50%);
-        }
-        .mark.five-minute::after {
-            width: 4px;
-            height: 14px;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 2px;
-        }
-
-        /* 文字盤の数字 */
-        .number {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            width: 50px;
-            height: 50px;
-            margin-left: -25px;
-            margin-top: -25px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            font-size: calc(var(--analog-size, 420px) * 0.075);
-            color: rgba(255,255,255,0.9);
-            z-index: 2;
-        }
-
-        .num1  { transform: rotate(30deg) translateY(calc(var(--analog-size, 420px) * -0.34)) rotate(-30deg); }
-        .num2  { transform: rotate(60deg) translateY(calc(var(--analog-size, 420px) * -0.34)) rotate(-60deg); }
-        .num3  { transform: rotate(90deg) translateY(calc(var(--analog-size, 420px) * -0.34)) rotate(-90deg); }
-        .num4  { transform: rotate(120deg) translateY(calc(var(--analog-size, 420px) * -0.34)) rotate(-120deg); }
-        .num5  { transform: rotate(150deg) translateY(calc(var(--analog-size, 420px) * -0.34)) rotate(-150deg); }
-        .num6  { transform: rotate(180deg) translateY(calc(var(--analog-size, 420px) * -0.34)) rotate(-180deg); }
-        .num7  { transform: rotate(210deg) translateY(calc(var(--analog-size, 420px) * -0.34)) rotate(-210deg); }
-        .num8  { transform: rotate(240deg) translateY(calc(var(--analog-size, 420px) * -0.34)) rotate(-240deg); }
-        .num9  { transform: rotate(270deg) translateY(calc(var(--analog-size, 420px) * -0.34)) rotate(-270deg); }
-        .num10 { transform: rotate(300deg) translateY(calc(var(--analog-size, 420px) * -0.34)) rotate(-300deg); }
-        .num11 { transform: rotate(330deg) translateY(calc(var(--analog-size, 420px) * -0.34)) rotate(-330deg); }
-        .num12 { transform: rotate(0deg) translateY(calc(var(--analog-size, 420px) * -0.34)) rotate(0deg); }
-
-        /* 中央のピン */
-        .center-nut {
-            width: 16px;
-            height: 16px;
-            background: radial-gradient(circle, #fff 0%, #999 100%);
-            border-radius: 50%;
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 6;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
-
-        /* 針 */
-        .hand {
-            position: absolute;
-            bottom: 50%;
-            left: 50%;
-            transform-origin: bottom center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-        }
-        .hour-hand { width: 8px; height: 28%; background: #ffffff; margin-left: -4px; border-radius: 4px 4px 0 0; z-index: 3; }
-        .minute-hand { width: 5px; height: 40%; background: #e0e0e0; margin-left: -2.5px; border-radius: 3px 3px 0 0; z-index: 4; }
-        .second-hand { width: 2px; height: 46%; background: #ff3b30; margin-left: -1px; border-radius: 2px 2px 0 0; z-index: 5; }
-        .second-hand::after { content: ''; position: absolute; bottom: -15px; left: 0; width: 2px; height: 15px; background: #ff3b30; }
     </style>
 </head>
 <body>
 
     <!-- コントローラー部分 -->
     <div class="controls" id="controlsContainer">
-        <div class="control-group border-line">
-            <label class="mode-label">
-                <input type="radio" name="clockType" value="digital" checked onchange="switchClockType()"> デジタル
-            </label>
-            <label class="mode-label">
-                <input type="radio" name="clockType" value="analog" onchange="switchClockType()"> アナログ
-            </label>
-        </div>
+        <!-- 全画面表示ボタン -->
+        <button id="fullscreen-btn" style="background-color: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">全画面表示</button>
 
-        <div class="control-group border-line">
+        <!-- モード切り替え -->
+        <div class="control-group mode-group">
             <label class="mode-label">
                 <input type="radio" name="clockMode" value="normal" onchange="toggleMode()"> 普通の時計
             </label>
@@ -221,49 +117,31 @@
                 <input type="radio" name="clockMode" value="speed" checked onchange="toggleMode()"> 倍速モード
             </label>
         </div>
+        
 
-        <div class="control-group border-line">
-            <span>サイズ:</span>
-            <button onclick="changeSize(-1)">小</button>
-            <button onclick="changeSize(1)">大</button>
+
+        <!-- 文字サイズ変更ボタン -->
+        <div class="control-group size-group">
+            <span>文字サイズ:</span>
+            <button onclick="changeFontSize(-2)">小</button>
+            <button onclick="changeFontSize(2)">大</button>
         </div>
 
         <div class="control-group" id="speedSettingGroup">
-            <label for="speed">進む速さ:</label>
-            <input type="number" id="speed" value="15" min="-3600" max="3600" style="width: 55px;" oninput="checkSpeedValue()"> 秒
+            <label for="speed">進む速さ (1秒で進む秒数):</label>
+            <input type="number" id="speed" value="15" min="-3600" max="3600" style="width: 60px;" oninput="checkSpeedValue()"> 秒
         </div>
         
         <div class="control-group">
-            <button onclick="syncToCurrentTime()" class="btn-now">現在時刻同期</button>
+            <button onclick="syncToCurrentTime()" class="btn-now">現在時刻に合わせる</button>
+            <label for="customTime">または指定:</label>
             <input type="time" id="customTime" step="1">
             <button onclick="setTime()">設定</button>
         </div>
     </div>
 
-    <!-- デジタル時計表示部分 -->
-    <div id="digitalClock" class="digital-clock" onclick="toggleControls()">00:00:00</div>
-
-    <!-- アナログ時計表示部分 -->
-    <div class="clock-face" id="analogClock" onclick="toggleControls()">
-        <div id="marksContainer"></div>
-        <div class="center-nut"></div>
-        <div class="hand hour-hand" id="hourHand"></div>
-        <div class="hand minute-hand" id="minuteHand"></div>
-        <div class="hand second-hand" id="secondHand"></div>
-
-        <div class="number num1">1</div>
-        <div class="number num2">2</div>
-        <div class="number num3">3</div>
-        <div class="number num4">4</div>
-        <div class="number num5">5</div>
-        <div class="number num6">6</div>
-        <div class="number num7">7</div>
-        <div class="number num8">8</div>
-        <div class="number num9">9</div>
-        <div class="number num10">10</div>
-        <div class="number num11">11</div>
-        <div class="number num12">12</div>
-    </div>
+    <!-- 時計表示部分 -->
+    <div id="clock" class="time" onclick="toggleControls()">00:00:00</div>
 
     <script>
         let virtualTime = new Date();
@@ -272,119 +150,79 @@
         let controlsContainer = document.getElementById('controlsContainer');
         let isTimeUp = false;
         
-        let digitalSize = 15;
-        let analogSize = 420;
-        let lastTimestamp = 0;
-        let accumulatedMs = 0; // デジタルの1秒同期用の蓄積ミリ秒
+        // 初期サイズ（vw単位）
+        let currentSize = 15;
 
-        // アナログ目盛りの自動生成
-        const marksContainer = document.getElementById('marksContainer');
-        for (let i = 0; i < 60; i++) {
-            const mark = document.createElement('div');
-            mark.classList.add('mark');
-            if (i % 5 === 0) mark.classList.add('five-minute');
-            mark.style.transform = `rotate(${i * 6}deg)`;
-            marksContainer.appendChild(mark);
-        }
-
-        // デジタルとアナログを行き来しても時間がズレないように端数を清算する
-        function switchClockType() {
-            const type = document.querySelector('input[name="clockType"]:checked').value;
-            const digitalEl = document.getElementById('digitalClock');
-            const analogEl = document.getElementById('analogClock');
+        // 文字サイズを変更する関数
+        function changeFontSize(amount) {
+            currentSize += amount;
+            // 画面が崩れないように最小サイズ(5vw)と最大サイズ(30vw)を制限
+            if (currentSize < 5) currentSize = 5;
+            if (currentSize > 30) currentSize = 30;
             
-            const mode = document.querySelector('input[name="clockMode"]:checked').value;
-            let speedPerSecond = 1; 
-            if (mode === 'speed') {
-                speedPerSecond = parseInt(speedInput.value);
-                if (isNaN(speedPerSecond)) speedPerSecond = 15;
-            }
-
-            if (type === 'digital') {
-                let vMs = virtualTime.getMilliseconds();
-                if (speedPerSecond !== 0) {
-                    accumulatedMs = Math.abs(Math.floor(vMs / speedPerSecond)) % 1000;
-                } else {
-                    accumulatedMs = 0;
-                }
-                virtualTime.setMilliseconds(0);
-                
-                digitalEl.style.display = 'block';
-                analogEl.style.display = 'none';
-            } else {
-                if (accumulatedMs > 0) {
-                    virtualTime.setTime(virtualTime.getTime() + (speedPerSecond * accumulatedMs));
-                    accumulatedMs = 0;
-                }
-                digitalEl.style.display = 'none';
-                analogEl.style.display = 'block';
-            }
-            updateClockDisplay(true);
+            // CSS変数に新しいサイズを適用
+            document.documentElement.style.setProperty('--clock-size', currentSize + 'vw');
         }
 
-        function changeSize(direction) {
-            const type = document.querySelector('input[name="clockType"]:checked').value;
-            if (type === 'digital') {
-                digitalSize += direction * 1;
-                if (digitalSize < 5) digitalSize = 5;
-                if (digitalSize > 30) digitalSize = 30;
-                document.documentElement.style.setProperty('--digital-size', digitalSize + 'vw');
-            } else {
-                analogSize += direction * 30;
-                if (analogSize < 200) analogSize = 200;
-                if (analogSize > 800) analogSize = 800;
-                document.documentElement.style.setProperty('--analog-size', analogSize + 'px');
-            }
-        }
-
+        // 時刻をタップしたときにコントローラーの表示/非表示を切り替える関数
         function toggleControls() {
             controlsContainer.classList.toggle('hidden');
         }
 
+        // 電子音を生成して鳴らす関数
         function playAlarmSound() {
             try {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
                 const audioCtx = new AudioContext();
+                
                 const times = [0, 0.2, 0.4];
                 times.forEach(delay => {
                     const oscillator = audioCtx.createOscillator();
                     const gainNode = audioCtx.createGain();
+                    
                     oscillator.connect(gainNode);
                     gainNode.connect(audioCtx.destination);
+                    
                     oscillator.type = 'sine';
                     oscillator.frequency.setValueAtTime(880, audioCtx.currentTime + delay);
+                    
                     gainNode.gain.setValueAtTime(0, audioCtx.currentTime + delay);
                     gainNode.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + delay + 0.02);
                     gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime + delay + 0.12);
                     gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + delay + 0.15);
+                    
                     oscillator.start(audioCtx.currentTime + delay);
                     oscillator.stop(audioCtx.currentTime + delay + 0.15);
                 });
             } catch (e) {
-                console.error("オーディオ再生エラー:", e);
+                console.error("オーディオの再生に失敗しました:", e);
             }
         }
 
+        // 入力された「進む速さ」が正の数（プラス）になったら自動で停止を解除する関数
         function checkSpeedValue() {
             const currentSpeed = parseInt(speedInput.value);
             if (!isNaN(currentSpeed) && currentSpeed >= 0) {
                 isTimeUp = false;
             }
         }
+
+        // 入力欄の初期値を現在の「時:分:00秒」にする関数
         function updateInputPreset(dateObj) {
             document.getElementById('customTime').value = 
                 `${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}:00`;
         }
 
+        // 完全に「本物の現在時刻」に同期する関数
         function syncToCurrentTime() {
             const realNow = new Date();
             virtualTime = new Date(realNow.getTime());
             isTimeUp = false;
-            accumulatedMs = 0;
             updateInputPreset(realNow);
-            updateClockDisplay(true);
+            updateClockDisplay();
         }
 
+        // モード変更時に設定欄の表示を切り替える
         function toggleMode() {
             const mode = document.querySelector('input[name="clockMode"]:checked').value;
             if (mode === 'normal') {
@@ -398,112 +236,100 @@
             }
         }
 
+        // ユーザーが指定した時間に時計を合わせる関数
         function setTime() {
             const timeVal = document.getElementById('customTime').value;
             if (!timeVal) return;
+            
             const [h, m, s] = timeVal.split(':');
             virtualTime.setHours(parseInt(h), parseInt(m), s ? parseInt(s) : 0);
-            virtualTime.setMilliseconds(0);
             isTimeUp = false;
-            accumulatedMs = 0;
-            updateClockDisplay(true);
+            updateClockDisplay();
         }
 
-        function updateClockDisplay(forceDigital = false) {
-            const hours = virtualTime.getHours();
-            const minutes = virtualTime.getMinutes();
-            const seconds = virtualTime.getSeconds();
-            const milliseconds = virtualTime.getMilliseconds();
+        // 表示だけを更新する関数
+        function updateClockDisplay() {
+            const hours = String(virtualTime.getHours()).padStart(2, '0');
+            const minutes = String(virtualTime.getMinutes()).padStart(2, '0');
+            const seconds = String(virtualTime.getSeconds()).padStart(2, '0');
+            document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+        }
 
-            if (forceDigital || milliseconds < 30) { 
-                const hStr = String(hours).padStart(2, '0');
-                const mStr = String(minutes).padStart(2, '0');
-                const sStr = String(seconds).padStart(2, '0');
-                document.getElementById('digitalClock').textContent = `${hStr}:${mStr}:${sStr}`;
+        // 1秒ごとに時間を進めるメイン処理
+        function tick() {
+            if (isTimeUp) return;
+
+            const mode = document.querySelector('input[name="clockMode"]:checked').value;
+            let secondsToAdd = 1; 
+            
+            if (mode === 'speed') {
+                secondsToAdd = parseInt(speedInput.value);
+                if (isNaN(secondsToAdd)) secondsToAdd = 15;
             }
+            
+            const oldDate = virtualTime.getDate();
+            virtualTime.setSeconds(virtualTime.getSeconds() + secondsToAdd);
+            const newDate = virtualTime.getDate();
+            
+            if (secondsToAdd < 0) {
+                const isExactlyZero = (virtualTime.getHours() === 0 && virtualTime.getMinutes() === 0 && virtualTime.getSeconds() === 0);
+                const isDateChanged = (oldDate !== newDate);
 
-            const preciseSeconds = seconds + (milliseconds / 1000);
-            const preciseMinutes = minutes + (preciseSeconds / 60);
-            const preciseHours = (hours % 12) + (preciseMinutes / 60);
-
-            document.getElementById('secondHand').style.transform = `rotate(${preciseSeconds * 6}deg)`;
-            document.getElementById('minuteHand').style.transform = `rotate(${preciseMinutes * 6}deg)`;
-            document.getElementById('hourHand').style.transform = `rotate(${preciseHours * 30}deg)`;
-        }
-
-        function loop(timestamp) {
-            if (!lastTimestamp) lastTimestamp = timestamp;
-            const elapsed = timestamp - lastTimestamp;
-            lastTimestamp = timestamp;
-
-            if (!isTimeUp) {
-                const clockType = document.querySelector('input[name="clockType"]:checked').value;
-                const mode = document.querySelector('input[name="clockMode"]:checked').value;
-                
-                let speedPerSecond = 1; 
-                if (mode === 'speed') {
-                    speedPerSecond = parseInt(speedInput.value);
-                    if (isNaN(speedPerSecond)) speedPerSecond = 15;
-                }
-
-                if (clockType === 'digital') {
-                    accumulatedMs += elapsed;
-                    if (accumulatedMs >= 1000) {
-                        const secondsToJump = speedPerSecond * Math.floor(accumulatedMs / 1000);
-                        accumulatedMs = accumulatedMs % 1000;
-
-                        const oldDate = virtualTime.getDate();
-                        virtualTime.setSeconds(virtualTime.getSeconds() + secondsToJump);
-                        virtualTime.setMilliseconds(0);
-                        const newDate = virtualTime.getDate();
-
-                        if (speedPerSecond < 0) {
-                            const isExactlyZero = (virtualTime.getHours() === 0 && virtualTime.getMinutes() === 0 && virtualTime.getSeconds() === 0);
-                            const isDateChanged = (oldDate !== newDate);
-                            if (isExactlyZero || isDateChanged) {
-                                virtualTime.setHours(0, 0, 0, 0);
-                                isTimeUp = true;
-                                playAlarmSound();
-                                setTimeout(() => {
-                                    alert("📢 00:00:00 に到達（通過）したため、時計を停止しました。プラスの秒数に変更すると再始動します。");
-                                }, 50);
-                            }
-                        }
-                        updateClockDisplay(true);
+                if (isExactlyZero || isDateChanged) {
+                    if (!isExactlyZero) {
+                        virtualTime.setHours(0, 0, 0);
                     }
-                } else {
-                    accumulatedMs = 0;
-                    const msToAdd = (speedPerSecond * elapsed);
-                    const oldDate = virtualTime.getDate();
-                    virtualTime.setTime(virtualTime.getTime() + msToAdd);
-                    const newDate = virtualTime.getDate();
-
-                    if (speedPerSecond < 0) {
-                        const isExactlyZero = (virtualTime.getHours() === 0 && virtualTime.getMinutes() === 0 && virtualTime.getSeconds() === 0);
-                        const isDateChanged = (oldDate !== newDate);
-                        if (isExactlyZero || isDateChanged) {
-                            virtualTime.setHours(0, 0, 0, 0);
-                            updateClockDisplay(true);
-                            isTimeUp = true;
-                            playAlarmSound();
-                            setTimeout(() => {
-                                alert("📢 00:00:00 に到達（通過）したため、時計を停止しました。プラスの秒数に変更すると再始動します。");
-                            }, 50);
-                        }
-                    }
+                    
                     updateClockDisplay();
+                    isTimeUp = true;
+                    playAlarmSound();
+                    
+                    setTimeout(() => {
+                        alert("📢 00:00:00 に到達（通過）したため、時計を停止しました。プラスの秒数に変更すると再始動します。");
+                    }, 50);
+                    return;
                 }
             }
-            requestAnimationFrame(loop);
+
+            updateClockDisplay();
         }
 
+        // 起動時の初期化処理
         const initNow = new Date();
         virtualTime = new Date(initNow.getTime());
         updateInputPreset(initNow);
-        updateClockDisplay(true);
+        updateClockDisplay();
         toggleMode();
         
-        requestAnimationFrame(loop);
+        // 1秒ごとに実行
+        setInterval(tick, 1000);
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+
+fullscreenBtn.addEventListener('click', () => {
+  // すでに全画面表示の場合は解除する
+  if (document.fullscreenElement) {
+    document.exitFullscreen();
+    fullscreenBtn.textContent = '全画面表示にする';
+  } else {
+    // 全画面表示を開始する
+    document.documentElement.requestFullscreen()
+      .then(() => {
+        fullscreenBtn.textContent = '全画面表示を解除';
+      })
+      .catch((err) => {
+        alert(`全画面表示に失敗しました: ${err.message}`);
+      });
+  }
+});
+
+// Escキーなどで全画面が解除されたとき、ボタンの文字を元に戻す
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement) {
+    fullscreenBtn.textContent = '全画面表示にする';
+  }
+});
+
     </script>
+
 </body>
 </html>
