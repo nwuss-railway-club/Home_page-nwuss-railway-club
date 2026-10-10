@@ -550,3 +550,196 @@ h2 {
 .all-archive-link a:hover {
     text-decoration: underline;
 }
+/* ==========================================
+   免責事項ポップアップ
+   ========================================== */
+/* ヘッダー右上のボタン配置 */
+.big-disclaimer-wrapper {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 200;
+}
+
+/* チェックボックスは隠す */
+.popup-check {
+    display: none;
+}
+
+/* 右上の起動ボタン（少し目立つように枠線を黄色にホバー変化） */
+.popup-open-btn {
+    display: inline-block;
+    background: rgba(0, 0, 0, 0.7); /* 暗めの半透明で文字をくっきり */
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.popup-open-btn:hover {
+    background: #004098; /* ホバー時は同好会ブルーに */
+    border-color: #ffd700; /* 枠線はゴールドに */
+    transform: translateY(-1px);
+}
+
+/* 画面全体を覆う黒い背景（初期状態は非表示） */
+.popup-overlay-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6); /* 画面全体を60%暗くする */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* サイトの何よりも一番手前に表示 */
+    
+    /* アニメーション用の初期設定（消えている状態） */
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+/* 真ん中にドカンと出る大きな白枠ウィンドウ */
+.popup-content-window {
+    background: #fff;
+    width: 90%;
+    max-width: 650px; /* パソコン画面で綺麗に見える大きな横幅 */
+    max-height: 85vh; /* 画面からはみ出さない高さ */
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    
+    /* ふわっと下から浮き出るアニメーション初期設定 */
+    transform: translateY(-30px);
+    transition: transform 0.3s ease;
+}
+
+/* 💡 【魔法のコード】チェックが入ったら画面全体とウィンドウを表示する */
+.popup-check:checked ~ .popup-overlay-bg {
+    visibility: visible;
+    opacity: 1;
+}
+.popup-check:checked ~ .popup-overlay-bg .popup-content-window {
+    transform: translateY(0); /* 定位置に戻る */
+}
+
+/* ウィンドウのヘッダー（同好会ブルー基調） */
+.popup-header {
+    background: #004098;
+    color: #fff;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.popup-header h2 {
+    color: #fff !important;
+    border-left: none !important;
+    padding-left: 0 !important;
+    margin-bottom: 0 !important;
+    font-size: 1.3rem !important;
+}
+
+/* 右上の✕ボタン */
+.popup-close-x {
+    font-size: 1.5rem;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.popup-close-x:hover {
+    color: #ffd700;
+}
+
+/* 文章が入るメインエリア */
+.popup-body {
+    padding: 25px;
+    overflow-y: auto; /* スマホで文章が溢れたらスクロールできるように */
+    text-align: left;
+}
+
+.popup-section-item {
+    margin-bottom: 20px;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    border-left: 4px solid #5c677d;
+}
+.popup-section-item:last-child {
+    margin-bottom: 0;
+}
+
+.popup-section-item h3 {
+    font-size: 1rem;
+    color: #222;
+    margin-bottom: 8px;
+}
+
+.popup-section-item p {
+    font-size: 0.9rem;
+    color: #444;
+    line-height: 1.6;
+}
+
+/* ウィンドウの下部エリア */
+.popup-footer {
+    background: #f1f3f5;
+    padding: 12px;
+    text-align: center;
+    border-top: 1px solid #e9ecef;
+}
+
+/* 下部の「確認して閉じる」ボタン（同好会のメインボタンに統一） */
+.popup-close-btn {
+    display: inline-block;
+    background: #004098;
+    color: #fff;
+    padding: 8px 30px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.popup-close-btn:hover {
+    background: #002d6b;
+}
+
+/* 📱 スマホ（画面幅が狭いとき）の微調整 */
+@media (max-width: 600px) {
+    .big-disclaimer-wrapper {
+        top: 10px;
+        right: 10px;
+    }
+    .popup-open-btn {
+        font-size: 0.75rem;
+        padding: 6px 12px;
+    }
+    .popup-content-window {
+        width: 95%;
+    }
+    .popup-body {
+        padding: 15px;
+    }
+}
+/* ✨ 英語テキスト用の追加装飾 */
+.popup-body .eng-text {
+    font-size: 0.8rem; /* 日本語（0.9rem）より少し小さく */
+    color: #666;       /* 少しマイルドなグレーに */
+    font-style: italic; /* スタイリッシュな斜体 */
+    line-height: 1.5;
+    margin-top: 8px;   /* 日本語との間に少し隙間を作る */
+    border-top: 1px dashed #e9ecef; /* 日本語と英語の区切り線 */
+    padding-top: 8px;
+}

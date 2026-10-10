@@ -9,15 +9,71 @@
 <body>
 
     <!-- 📸 ヘッダー部分（トップページと共通） -->
-    <header class="main-header">
+        <header class="main-header">
         <div class="header-image-container">
+            <!-- imagesフォルダの中の画像を表示します -->
             <img src="images/header20260929-.JPG" alt="今月の鉄道写真" class="header-image">
+            
             <div class="header-overlay">
                 <h1>奈良女子大学附属中等教育学校<br><span>鉄道同好会</span></h1>
                 <p class="subtitle">〜 ゆる〜く、楽しく、活動しております 〜</p>
+
+                <!-- 💡 修正箇所：免責事項ポップアップを文字エリアの内側に正しく配置しました -->
+                <div class="big-disclaimer-wrapper">
+                    <!-- 開閉用の隠しチェックボックス -->
+                    <input type="checkbox" id="popup-disclaimer-toggle" class="popup-check">
+                    
+                    <!-- ヘッダー右上に配置する起動ボタン -->
+                    <label for="popup-disclaimer-toggle" class="popup-open-btn">
+                        免責事項を確認する / Disclaimers
+                    </label>
+                    
+                    <!-- ボタンを押したら画面全体を覆う黒い背景 -->
+                    <div class="popup-overlay-bg">
+                        <!-- 大きく表示される免責事項の本体ボックス -->
+                        <div class="popup-content-window">
+                            <div class="popup-header">
+                                <h2>免責事項 / Disclaimers</h2>
+                                <label for="popup-disclaimer-toggle" class="popup-close-x">✕</label>
+                            </div>
+                            
+                            <div class="popup-body">
+                                <section class="popup-section-item">
+                                    <h3>情報の正確性について / Accuracy of Information</h3>
+                                    <p>当ホームページに掲載されている情報や活動内容は、可能な限り正確を期すよう努めておりますが、その完全性・正確性を保証するものではありません。予告なしに内容の変更や削除を行うことがあります。</p>
+                                    <p class="eng-text">While we strive to ensure that the information on this website is as accurate as possible, we do not guarantee its completeness or accuracy. Content may be changed or deleted without prior notice.</p>
+                                </section>
+                                
+                                <section class="popup-section-item">
+                                    <h3>損害等の責任について / Limitation of Liability</h3>
+                                    <p>当ホームページの利用、または掲載された情報によって生じたトラブル・損失・損害について、当同好会および学校側は<strong>一切</strong>の責任を負いかねますのであらかじめご了承ください。</p>
+                                    <p class="eng-text">The Railway Club and the school shall not be held liable for any trouble, loss, or damage arising from the use of this website or the information contained herein.</p>
+                                </section>
+                                
+                                <section class="popup-section-item">
+                                    <h3>外部リンクについて / External Links</h3>
+                                    <p>当ホームページからリンクやバナーなどによって他のサイトに移動された場合、<strong>その</strong>移動先サイトで提供される情報やサービス等について、<strong>当同好会および学校側は一切の責任を負いかねます。</strong></p>
+                                    <p class="eng-text">We assume no responsibility or liability for any information, services, or content provided on external websites linked from this site.</p>
+                                </section>
+                                <section class="popup-section-item">
+                                    <h3>著作権について / Copyright</h3>
+                                    <p>当ホームページに掲載されているすべてのコンテンツ（文章、写真、画像、動画等）の著作権は、当同好会または各権利者に帰属します。これらを無断で転載、複製、改変、販売、または直リンクする行為は固く禁じます。</P>
+                                    <p class="eng-text">All content on this website, including text, photographs, images, and videos, is protected by copyright owned by the Railway Club or their respective owners. Unauthorized reproduction, duplication, modification, distribution, or hotlinking of any content is strictly prohibited.</p>
+                                </section>
+                            </div>
+                            
+                            <div class="popup-footer">
+                                <label for="popup-disclaimer-toggle" class="popup-close-btn">確認して閉じる / Close</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 免責事項ここまで -->
+
             </div>
         </div>
     </header>
+
 
     <!-- 🧭 ナビゲーションメニュー（「同好会紹介」をactiveにしています） -->
     <nav class="global-nav">

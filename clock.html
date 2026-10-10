@@ -19,7 +19,7 @@
             position: relative;
         }
 
-        /* コントローラーのスタイル */
+        /* コントローラーのスタイル（ゆっくり消える完全版） */
         .controls {
             position: absolute;
             top: 20px;
@@ -31,12 +31,17 @@
             align-items: center;
             backdrop-filter: blur(5px);
             z-index: 10;
-            transition: opacity 0.3s ease, transform 0.3s ease;
+            /* ★誤字を修正：すべて2.0秒かけて超滑らかに消えるようにしました */
+            transition: all 1.0s ease !important; 
+            opacity: 1;
+            transform: translateY(0);
         }
+
+        /* 消えた状態のスタイル */
         .controls.hidden {
-            opacity: 0;
+            opacity: 0 !important;
             pointer-events: none;
-            transform: translateY(-20px);
+            transform: translateY(-20px) !important;
         }
 
         .control-group {
@@ -87,249 +92,267 @@
             background: #00cc55;
         }
 
-        /* 時計の表示（初期の文字サイズをCSS変数で管理） */
+        /* 時計の表示 */
         .time {
             font-size: var(--clock-size, 15vw);
             font-weight: bold;
             font-variant-numeric: tabular-nums;
             cursor: pointer;
             user-select: none;
-            transition: font-size 0.1s ease; /* サイズ変更を滑らかに */
+            transition: font-size 0.1s ease;
         }
         .time:hover {
             text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+        }
+
+        /* 免責事項ポップアップの外枠 */
+        #disclaimer-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 免責事項ポップアップの白い箱 */
+        .disclaimer-popup-content {
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            text-align: left;
+            color: #333 !important;
+        }
+        .disclaimer-popup-content h2, 
+        .disclaimer-popup-content h3, 
+        .disclaimer-popup-content p,
+        .disclaimer-popup-content strong {
+            color: #333 !important;
+        }
+        .popup-section-item {
+            margin-bottom: 20px;
+        }
+        .eng-text {
+            font-size: 0.85em;
+            color: #666 !important;
+            font-style: italic;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
 
     <!-- コントローラー部分 -->
-    <div class="controls" id="controlsContainer">
+    <div id="control-panel" class="controls">
+        <!-- 免責事項ボタン -->
+        <button type="button" id="open-disclaimer-btn" style="background: none; border: 1px solid #aaa; color: #fff !important; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9em; font-weight: bold;">
+            ⚠ 免責事項 / Disclaimer
+        </button>
+        
         <!-- 全画面表示ボタン -->
-        <button id="fullscreen-btn" style="background-color: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">全画面表示</button>
+        <button id="fullscreen-btn" onclick="toggleFullscreen()" style="background-color: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">全画面表示</button>
 
         <!-- モード切り替え -->
         <div class="control-group mode-group">
             <label class="mode-label">
-                <input type="radio" name="clockMode" value="normal" onchange="toggleMode()"> 普通の時計
+                <input type="radio" name="clockMode" value="normal" onchange="toggleMode()"> 普通
             </label>
             <label class="mode-label">
-                <input type="radio" name="clockMode" value="speed" checked onchange="toggleMode()"> 倍速モード
+                <input type="radio" name="clockMode" value="speed" checked onchange="toggleMode()"> 倍速
             </label>
         </div>
-        
-
 
         <!-- 文字サイズ変更ボタン -->
         <div class="control-group size-group">
-            <span>文字サイズ:</span>
             <button onclick="changeFontSize(-2)">小</button>
             <button onclick="changeFontSize(2)">大</button>
         </div>
 
         <div class="control-group" id="speedSettingGroup">
-            <label for="speed">進む速さ (1秒で進む秒数):</label>
-            <input type="number" id="speed" value="15" min="-3600" max="3600" style="width: 60px;" oninput="checkSpeedValue()"> 秒
+            <label for="speed">1秒で</label>
+            <input type="number" id="speed" value="15" min="-3600" max="3600" style="width: 60px;" oninput="updateSpeedMultiplier()"> 秒進む
         </div>
         
         <div class="control-group">
-            <button onclick="syncToCurrentTime()" class="btn-now">現在時刻に合わせる</button>
-            <label for="customTime">または指定:</label>
-            <input type="time" id="customTime" step="1">
+            <button onclick="syncToCurrentTime()" class="btn-now">現在時刻</button>
+            <label for="customTime">指定:</label>
+            <input type="time" id="customTime" step="1" value="00:00:00">
             <button onclick="setTime()">設定</button>
+            
+            <!-- コントローラー連動型コピーライト（thisの位置にワープします） -->
+            <p style="position: fixed !important; top: calc(100vh - 35px) !important; left: 50% !important; transform: translateX(-50%) !important; color: rgba(255,255,255,0.6) !important; font-size: 0.8em !important; margin: 0 !important; white-space: nowrap !important; z-index: 9999 !important; pointer-events: none !important;">© 2026 奈良女子大学附属中等教育学校 鉄道同好会</p>
         </div>
     </div>
 
     <!-- 時計表示部分 -->
     <div id="clock" class="time" onclick="toggleControls()">00:00:00</div>
 
+
+    <!-- 免責事項ポップアップ本体 -->
+    <div id="disclaimer-overlay">
+        <div class="disclaimer-popup-content">
+            <button id="close-disclaimer-x" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: #999;">✕</button>
+            <h2>免責事項 / Disclaimers</h2>
+            
+            <section class="popup-section-item">
+                <h3>🔍 情報の正確性について / Accuracy of Information</h3>
+                <p>当ホームページに掲載されている情報や活動内容は、可能な限り正確を期すよう努めておりますが、その完全性・正確性を保証するものではありません。予告なしに内容の変更や削除を行うことがあります。</p>
+                <p class="eng-text">While we strive to ensure that the information on this website is as accurate as possible, we do not guarantee its completeness or accuracy. Content may be changed or deleted without prior notice.</p>
+            </section>
+
+            <section class="popup-section-item">
+                <h3>損害等の責任について / Limitation of Liability</h3>
+                <p>当ホームページの利用、または掲載された情報によって生じたトラブル・損失・損害について、当同好会および学校側は<strong>一切の責任を負いかねます</strong>のであらかじめご了承ください。</p>
+                <p class="eng-text">Please note that the Railway Club and the school shall not be held liable for any issues, loss, or damage arising from the use of this website or the information contained herein.</p>
+            </section>
+
+            <section class="popup-section-item">
+                <h3>外部リンクについて / Links to External Sites</h3>
+                <p>当ホームページからリンクやバナーなどによって他のサイトに移動された場合、その移動先サイトで提供される情報やサービス等について、当同好会および学校側は<strong>一切の責任を負いかねます。</strong></p>
+                <p class="eng-text">No responsibility or liability is assumed for any information, services, or content provided on external websites linked from this site.</p>
+            </section>
+
+            <section class="popup-section-item">
+                <h3>著作権について / Copyright</h3>
+                <p>当ホームページに掲載されているすべてのコンテンツ（文章、写真、画像、動画等）の著作権は、当同好会または各権利者に帰属します。これらを無断で転載、複製、改変、販売、または直リンクする行為は<strong>固く禁じます</strong>。</p>
+                <p class="eng-text">All content on this website, including text, photographs, images, and videos, is protected by copyright owned by the Railway Club or their respective owners. Unauthorized reproduction, duplication, modification, distribution, or hotlinking of any content is strictly prohibited.</p>
+            </section>
+
+            <section class="popup-section-item">
+                <h3>本ツールの利用について / Use of This Tool</h3>
+                <p>当ホームページで提供しているカスタム時計（倍速機能等を含む）の表示および動作について、その正確性や同期の完全性を保証するものではありません。本ツールの利用によって生じた、いかなるスケジュール上のトラブルや損害についても、当同好会および学校側は<strong>一切の責任を負いかねます。</strong></p>
+                <p class="eng-text">We do not guarantee the absolute accuracy or synchronization of the custom clock tool provided on this website. The Railway Club and the school assume no responsibility or liability for any scheduling issues, losses, or inconveniences resulting from the use of this tool.</p>
+            </section>
+
+            <div style="text-align: center; margin-top: 25px;">
+                <button id="close-disclaimer-btn" style="background: #333; color: #fff; padding: 8px 20px; border: none; border-radius: 4px; cursor: pointer;">確認して閉じる / Close</button>
+            </div>
+        </div>
+    </div>
+
+
     <script>
+        // ★1. 時計の初期状態を「0時0分0秒」に固定します
         let virtualTime = new Date();
-        let speedInput = document.getElementById('speed');
-        let speedSettingGroup = document.getElementById('speedSettingGroup');
-        let controlsContainer = document.getElementById('controlsContainer');
-        let isTimeUp = false;
-        
-        // 初期サイズ（vw単位）
-        let currentSize = 15;
+        virtualTime.setHours(0, 0, 0, 0); 
 
-        // 文字サイズを変更する関数
-        function changeFontSize(amount) {
-            currentSize += amount;
-            // 画面が崩れないように最小サイズ(5vw)と最大サイズ(30vw)を制限
-            if (currentSize < 5) currentSize = 5;
-            if (currentSize > 30) currentSize = 30;
-            
-            // CSS変数に新しいサイズを適用
-            document.documentElement.style.setProperty('--clock-size', currentSize + 'vw');
+        let isSpeedMode = true;
+        let speedMultiplier = 15;
+        let currentFontSize = 15;
+
+    // 時計の数字（00:00:00）を画面に書き出す処理
+    function updateClockDisplay() {
+        let h = String(virtualTime.getHours()).padStart(2, '0');
+        let m = String(virtualTime.getMinutes()).padStart(2, '0');
+        let s = String(virtualTime.getSeconds()).padStart(2, '0');
+        const clockEl = document.getElementById('clock');
+        if (clockEl) {
+            clockEl.innerText = `${h}:${m}:${s}`;
         }
+    }
 
-        // 時刻をタップしたときにコントローラーの表示/非表示を切り替える関数
-        function toggleControls() {
-            controlsContainer.classList.toggle('hidden');
+    // 1秒ごとに時間を進めるタイマー処理
+    setInterval(() => {
+        if (isSpeedMode) {
+            virtualTime.setSeconds(virtualTime.getSeconds() + speedMultiplier);
+        } else {
+            virtualTime.setSeconds(virtualTime.getSeconds() + 1);
         }
-
-        // 電子音を生成して鳴らす関数
-        function playAlarmSound() {
-            try {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                const audioCtx = new AudioContext();
-                
-                const times = [0, 0.2, 0.4];
-                times.forEach(delay => {
-                    const oscillator = audioCtx.createOscillator();
-                    const gainNode = audioCtx.createGain();
-                    
-                    oscillator.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
-                    
-                    oscillator.type = 'sine';
-                    oscillator.frequency.setValueAtTime(880, audioCtx.currentTime + delay);
-                    
-                    gainNode.gain.setValueAtTime(0, audioCtx.currentTime + delay);
-                    gainNode.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + delay + 0.02);
-                    gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime + delay + 0.12);
-                    gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + delay + 0.15);
-                    
-                    oscillator.start(audioCtx.currentTime + delay);
-                    oscillator.stop(audioCtx.currentTime + delay + 0.15);
-                });
-            } catch (e) {
-                console.error("オーディオの再生に失敗しました:", e);
-            }
-        }
-
-        // 入力された「進む速さ」が正の数（プラス）になったら自動で停止を解除する関数
-        function checkSpeedValue() {
-            const currentSpeed = parseInt(speedInput.value);
-            if (!isNaN(currentSpeed) && currentSpeed >= 0) {
-                isTimeUp = false;
-            }
-        }
-
-        // 入力欄の初期値を現在の「時:分:00秒」にする関数
-        function updateInputPreset(dateObj) {
-            document.getElementById('customTime').value = 
-                `${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}:00`;
-        }
-
-        // 完全に「本物の現在時刻」に同期する関数
-        function syncToCurrentTime() {
-            const realNow = new Date();
-            virtualTime = new Date(realNow.getTime());
-            isTimeUp = false;
-            updateInputPreset(realNow);
-            updateClockDisplay();
-        }
-
-        // モード変更時に設定欄の表示を切り替える
-        function toggleMode() {
-            const mode = document.querySelector('input[name="clockMode"]:checked').value;
-            if (mode === 'normal') {
-                speedSettingGroup.style.opacity = '0.3';
-                speedInput.disabled = true;
-                isTimeUp = false;
-            } else {
-                speedSettingGroup.style.opacity = '1';
-                speedInput.disabled = false;
-                checkSpeedValue();
-            }
-        }
-
-        // ユーザーが指定した時間に時計を合わせる関数
-        function setTime() {
-            const timeVal = document.getElementById('customTime').value;
-            if (!timeVal) return;
-            
-            const [h, m, s] = timeVal.split(':');
-            virtualTime.setHours(parseInt(h), parseInt(m), s ? parseInt(s) : 0);
-            isTimeUp = false;
-            updateClockDisplay();
-        }
-
-        // 表示だけを更新する関数
-        function updateClockDisplay() {
-            const hours = String(virtualTime.getHours()).padStart(2, '0');
-            const minutes = String(virtualTime.getMinutes()).padStart(2, '0');
-            const seconds = String(virtualTime.getSeconds()).padStart(2, '0');
-            document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
-        }
-
-        // 1秒ごとに時間を進めるメイン処理
-        function tick() {
-            if (isTimeUp) return;
-
-            const mode = document.querySelector('input[name="clockMode"]:checked').value;
-            let secondsToAdd = 1; 
-            
-            if (mode === 'speed') {
-                secondsToAdd = parseInt(speedInput.value);
-                if (isNaN(secondsToAdd)) secondsToAdd = 15;
-            }
-            
-            const oldDate = virtualTime.getDate();
-            virtualTime.setSeconds(virtualTime.getSeconds() + secondsToAdd);
-            const newDate = virtualTime.getDate();
-            
-            if (secondsToAdd < 0) {
-                const isExactlyZero = (virtualTime.getHours() === 0 && virtualTime.getMinutes() === 0 && virtualTime.getSeconds() === 0);
-                const isDateChanged = (oldDate !== newDate);
-
-                if (isExactlyZero || isDateChanged) {
-                    if (!isExactlyZero) {
-                        virtualTime.setHours(0, 0, 0);
-                    }
-                    
-                    updateClockDisplay();
-                    isTimeUp = true;
-                    playAlarmSound();
-                    
-                    setTimeout(() => {
-                        alert("📢 00:00:00 に到達（通過）したため、時計を停止しました。プラスの秒数に変更すると再始動します。");
-                    }, 50);
-                    return;
-                }
-            }
-
-            updateClockDisplay();
-        }
-
-        // 起動時の初期化処理
-        const initNow = new Date();
-        virtualTime = new Date(initNow.getTime());
-        updateInputPreset(initNow);
         updateClockDisplay();
-        toggleMode();
-        
-        // 1秒ごとに実行
-        setInterval(tick, 1000);
-        const fullscreenBtn = document.getElementById('fullscreen-btn');
+    }, 1000);
 
-fullscreenBtn.addEventListener('click', () => {
-  // すでに全画面表示の場合は解除する
-  if (document.fullscreenElement) {
-    document.exitFullscreen();
-    fullscreenBtn.textContent = '全画面表示にする';
-  } else {
-    // 全画面表示を開始する
-    document.documentElement.requestFullscreen()
-      .then(() => {
-        fullscreenBtn.textContent = '全画面表示を解除';
-      })
-      .catch((err) => {
-        alert(`全画面表示に失敗しました: ${err.message}`);
-      });
-  }
-});
+    // 普通・倍速の切り替えラジオボタン連動
+    function toggleMode() {
+        const modeEl = document.querySelector('input[name="clockMode"]:checked');
+        if (modeEl) {
+            isSpeedMode = (modeEl.value === 'speed');
+        }
+    }
 
-// Escキーなどで全画面が解除されたとき、ボタンの文字を元に戻す
-document.addEventListener('fullscreenchange', () => {
-  if (!document.fullscreenElement) {
-    fullscreenBtn.textContent = '全画面表示にする';
-  }
-});
+    // 進む速さの数値を更新
+    function updateSpeedMultiplier() {
+        const speedInput = document.getElementById('speed');
+        if (speedInput) {
+            speedMultiplier = parseInt(speedInput.value, 10) || 0;
+        }
+    }
 
-    </script>
+    // 文字サイズの変更（大小）
+    function changeFontSize(dir) {
+        currentFontSize += dir;
+        if (currentFontSize < 4) currentFontSize = 4;
+        const clockEl = document.getElementById('clock');
+        if (clockEl) {
+            clockEl.style.fontSize = currentFontSize + 'vw';
+        }
+    }
 
-</body>
-</html>
+    // 「現在時刻」ボタンを押した処理
+    function syncToCurrentTime() {
+        virtualTime = new Date();
+        updateClockDisplay();
+    }
+
+    // 「設定」ボタンを押したときの処理
+    function setTime() {
+        const timeVal = document.getElementById('customTime').value;
+        if (timeVal) {
+            const parts = timeVal.split(':');
+            virtualTime.setHours(parseInt(parts, 10), parseInt(parts, 10), parseInt(parts || 0, 10), 0);
+            updateClockDisplay();
+        }
+    }
+
+// 全画面表示
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        // パソコンのF11キーと同じ本物の全画面モードを開始（パネルは消しません）
+        document.documentElement.requestFullscreen().catch(err => {
+            console.log("全画面表示に失敗しました: " + err.message);
+        });
+    } else {
+        // すでに全画面なら、通常サイズに戻す
+        document.exitFullscreen();
+    }
+}
+
+
+// ★設定バーの表示・非表示だけを切り替える機能
+function toggleControls() {
+    const panel = document.getElementById('control-panel');
+    if (panel) {
+        panel.classList.toggle('hidden');
+    }
+}
+
+
+    // ページが開いた瞬間に、一回目の時計表示を実行（これで00:00:00になります）
+    updateClockDisplay();
+
+    // ----------------------------------------------------
+    // 免責事項ポップアップを開閉するためのプログラム
+    // ----------------------------------------------------
+    const openBtn = document.getElementById('open-disclaimer-btn');
+    const closeBtn = document.getElementById('close-disclaimer-btn');
+    const closeX = document.getElementById('close-disclaimer-x');
+    const overlay = document.getElementById('disclaimer-overlay');
+
+    if (openBtn && overlay) openBtn.addEventListener('click', () => overlay.style.display = 'flex');
+    if (closeBtn && overlay) closeBtn.addEventListener('click', () => overlay.style.display = 'none');
+    if (closeX && overlay) closeX.addEventListener('click', () => overlay.style.display = 'none');
+    if (overlay) {
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.style.display = 'none';
+        });
+    }
+</script>
