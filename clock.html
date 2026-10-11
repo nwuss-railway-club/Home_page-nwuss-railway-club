@@ -3,320 +3,431 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>カスタム時計 メンテナンス中 | 奈良女子大学附属中等教育学校 鉄道同好会</title>
+    <title>カスタム時計（現在時刻同期機能付き）</title>
     <style>
-        /* ==========================================
-           🔑 同好会共通のメインスタイル（提供されたCSSをそのまま継承）
-           ========================================== */
-        html {
-            scroll-behavior: smooth;
-            scroll-padding-top: 60px;
-        }
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
         body {
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f7f9fa;
-        }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* 📸 写真ヘッダー（文字色や金色の強調を維持） */
-        .header-image-container {
-            position: relative;
-            width: 100%;
-            height: 250px;
-            background-color: #004098; /* 写真が無い場合のバックアップカラー */
-            overflow: hidden;
-        }
-        .header-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.4);
+            background-color: #000;
+            color: #fff;
+            font-family: sans-serif;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            color: #fff;
-            text-align: center;
-            padding: 20px;
-        }
-        .header-overlay h1 {
-            font-size: 2.2rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
-            margin-bottom: 10px;
-        }
-        .header-overlay h1 span {
-            font-size: 2.8rem;
-            font-weight: bold;
-            color: #ffd700; /* 金色 */
-        }
-        .subtitle {
-            font-size: 1.1rem;
-            letter-spacing: 2px;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
         }
 
-        /* 🧭 共通メニューバー */
-        .global-nav {
-            background-color: #004098;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .global-nav ul {
-            list-style: none;
-            display: flex;
-            justify-content: center;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        .global-nav li {
-            flex: 1;
-            text-align: center;
-        }
-        .global-nav a {
-            display: block;
-            padding: 15px 10px;
-            color: #fff;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 0.95rem;
-            transition: background 0.3s;
-        }
-        .global-nav a:hover, .global-nav a.active {
-            background-color: #002d6b;
-            border-bottom: 3px solid #ffd700;
-        }
-
-        /* ==========================================
-           🛠 修正中ページ専用の特設デザイン
-           ========================================== */
-        .maintenance-section {
-            background: #fff;
-            padding: 40px 30px;
-            margin-top: 25px;
-            margin-bottom: 25px;
+        /* コントローラーのスタイル */
+        .controls {
+            position: absolute;
+            top: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            text-align: center; /* 中央揃え */
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            backdrop-filter: blur(5px);
+            z-index: 10;
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
-        .maintenance-icon {
-            font-size: 4.5rem;
-            margin-bottom: 15px;
-            animation: bounce 2s infinite; /* 遊び心のあるバウンドアニメーション */
-        }
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        .maintenance-title {
-            color: #e63946; /* 警告用レッド */
-            font-size: 1.8rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-        .maintenance-box {
-            background-color: #fff5f5;
-            border-left: 4px solid #e63946;
-            padding: 20px;
-            margin: 25px 0;
-            text-align: left;
-            border-radius: 0 6px 6px 0;
-        }
-        .maintenance-box h3 {
-            font-size: 1.1rem;
-            color: #c92a2a;
-            margin-bottom: 8px;
-        }
-        .maintenance-box p {
-            font-size: 0.95rem;
-            color: #495057;
-            margin-bottom: 5px;
+        .controls.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-20px);
         }
 
-        /* ボタン装飾 */
-        .btn {
-            display: inline-block;
-            background: #004098;
-            color: #fff;
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-top: 15px;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-        .btn:hover {
-            background: #002d6b;
-        }
-
-        /* 👣 フッター・免責事項ポップアップ */
-        .main-footer {
-            background: #2b2d42;
-            color: #adb5bd;
-            text-align: center;
-            padding: 40px 20px;
-            margin-top: 50px;
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             font-size: 0.9rem;
         }
-        .copyright {
-            margin-top: 20px;
-            font-size: 0.8rem;
-            color: #6c757d;
+        .mode-group {
+            border-right: 1px solid #555;
+            padding-right: 15px;
+        }
+        /* サイズ変更グループの境界線 */
+        .size-group {
+            border-right: 1px solid #555;
+            padding-right: 15px;
+        }
+        .mode-label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        input[type="number"], input[type="time"] {
+            background: #222;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        button {
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #ccc;
+        }
+        .btn-now {
+            background: #00ff66;
+            color: #000;
+        }
+        .btn-now:hover {
+            background: #00cc55;
         }
 
-        /* 免責事項ポップアップ（提供されたCSSコードを100%準拠） */
-        .big-disclaimer-wrapper { position: absolute; top: 15px; right: 15px; z-index: 200; }
-        .popup-check { display: none; }
-        .popup-open-btn { display: inline-block; background: rgba(0, 0, 0, 0.7); color: #fff; padding: 8px 16px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.5); transition: all 0.2s; user-select: none; }
-        .popup-open-btn:hover { background: #004098; border-color: #ffd700; transform: translateY(-1px); }
-        .popup-overlay-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; z-index: 9999; visibility: hidden; opacity: 0; transition: all 0.3s ease; }
-        .popup-content-window { background: #fff; width: 90%; max-width: 650px; max-height: 85vh; border-radius: 10px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; overflow: hidden; transform: translateY(-30px); transition: transform 0.3s ease; }
-        .popup-check:checked ~ .popup-overlay-bg { visibility: visible; opacity: 1; }
-        .popup-check:checked ~ .popup-overlay-bg .popup-content-window { transform: translateY(0); }
-        .popup-header { background: #004098; color: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
-        .popup-header h2 { color: #fff !important; font-size: 1.3rem !important; }
-        .popup-close-x { font-size: 1.5rem; color: rgba(255, 255, 255, 0.7); cursor: pointer; }
-        .popup-close-x:hover { color: #ffd700; }
-        .popup-body { padding: 25px; overflow-y: auto; text-align: left; }
-        .popup-section-item { margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 6px; border-left: 4px solid #5c677d; }
-        .popup-section-item h3 { font-size: 1rem; color: #222; margin-bottom: 8px; }
-        .popup-section-item p { font-size: 0.9rem; color: #444; line-height: 1.6; }
-        .popup-body .eng-text { font-size: 0.8rem; color: #666; font-style: italic; line-height: 1.5; margin-top: 8px; border-top: 1px dashed #e9ecef; padding-top: 8px; }
-        .popup-footer { background: #f1f3f5; padding: 12px; text-align: center; border-top: 1px solid #e9ecef; }
-        .popup-close-btn { display: inline-block; background: #004098; color: #fff; padding: 8px 30px; border-radius: 4px; font-size: 0.9rem; font-weight: bold; cursor: pointer; }
-        .popup-close-btn:hover { background: #002d6b; }
+        /* 時計の表示（初期の文字サイズをCSS変数で管理） */
+        .time {
+            font-size: var(--clock-size, 15vw);
+            font-weight: bold;
+            font-variant-numeric: tabular-nums;
+            cursor: pointer;
+            user-select: none;
+            transition: font-size 0.1s ease; /* サイズ変更を滑らかに */
+        }
+        .time:hover {
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+        }
+                /* 免責事項ポップアップの外枠 */
+        #disclaimer-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
 
-        /* 📱 スマホ用微調整 */
-        @media (max-width: 600px) {
-            .header-image-container { height: 180px; }
-            .header-overlay h1 { font-size: 1.4rem; }
-            .header-overlay h1 span { font-size: 1.8rem; }
-            .global-nav ul { flex-wrap: wrap; }
-            .global-nav li { width: 33.33%; }
-            .global-nav a { font-size: 0.8rem; padding: 10px 5px; }
-            .maintenance-title { font-size: 1.4rem; }
+        /* 免責事項ポップアップの白い箱 */
+        .disclaimer-popup-content {
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            text-align: left;
+            color: #333 !important;
+        }
+        .disclaimer-popup-content h2, 
+        .disclaimer-popup-content h3, 
+        .disclaimer-popup-content p,
+        .disclaimer-popup-content strong {
+            color: #333 !important;
+        }
+        .popup-section-item {
+            margin-bottom: 20px;
+        }
+        .eng-text {
+            font-size: 0.85em;
+            color: #666 !important;
+            font-style: italic;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
 
-            <!-- 📸 ヘッダー部分（写真エリア） -->
-    <header class="main-header">
-        <div class="header-image-container">
-            <!-- imagesフォルダの中の画像を表示します -->
-            <img src="images/header20260929-.JPG" alt="今月の鉄道写真" class="header-image">
+    <!-- コントローラー部分 -->
+    <div class="controls" id="controlsContainer">
+        <!-- 免責事項ボタン -->
+        <button type="button" id="open-disclaimer-btn" style="background: none; border: 1px solid #aaa; color: #fff !important; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9em; font-weight: bold;">
+            ⚠ 免責事項 / Disclaimer
+        </button>
+        <!-- 戻る -->
+        <button type="button" id="open-disclaimer-btn" style="background: none; border: 3px solid #aaa; color: #fff !important; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9em; font-weight: bold;">
+            <a href="index.html" class="active">ホーム</a>
+        </button>
+        <!-- 全画面表示ボタン -->
+        <button id="fullscreen-btn" style="background-color: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">全画面表示</button>
+
+        <!-- モード切り替え -->
+        <div class="control-group mode-group">
+            <label class="mode-label">
+                <input type="radio" name="clockMode" value="normal" onchange="toggleMode()"> 普通
+            </label>
+            <label class="mode-label">
+                <input type="radio" name="clockMode" value="speed" checked onchange="toggleMode()"> 倍速
+            </label>
+
+        </div>
+        
+
+
+        <!-- 文字サイズ変更ボタン -->
+        <div class="control-group size-group">
+            <button onclick="changeFontSize(-2)">小</button>
+            <button onclick="changeFontSize(2)">大</button>
+        </div>
+
+        <div class="control-group" id="speedSettingGroup">
+            <label for="speed">1秒で:</label>
+            <input type="number" id="speed" value="15" min="-3600" max="3600" style="width: 60px;" oninput="checkSpeedValue()"> 秒進む
+        </div>
+        
+        <div class="control-group">
+            <button onclick="syncToCurrentTime()" class="btn-now">現在時刻</button>
+            <label for="customTime">指定:</label>
+            <input type="time" id="customTime" step="1">
+            <button onclick="setTime()">設定</button>
+            <!-- コントローラー連動型コピーライト -->
+            <p style="position: fixed !important; top: calc(100vh - 35px) !important; left: 50% !important; transform: translateX(-50%) !important; color: rgba(255,255,255,0.6) !important; font-size: 0.8em !important; margin: 0 !important; white-space: nowrap !important; z-index: 9999 !important; pointer-events: none !important;">© 2026 奈良女子大学附属中等教育学校 鉄道同好会</p>
+        </div>
+    </div>
+
+    <!-- 時計表示部分 -->
+    <div id="clock" class="time" onclick="toggleControls()">00:00:00</div>
+    <!-- 免責事項ポップアップ本体 -->
+    <div id="disclaimer-overlay">
+        <div class="disclaimer-popup-content">
+            <button id="close-disclaimer-x" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: #999;">✕</button>
+            <h2>免責事項 / Disclaimers</h2>
             
-            <div class="header-overlay">
-                <h1>奈良女子大学附属中等教育学校<br><span>鉄道同好会</span></h1>
-                <p class="subtitle">〜 ゆる〜く、楽しく、活動しております 〜</p>
+            <section class="popup-section-item">
+                <h3>情報の正確性について / Accuracy of Information</h3>
+                <p>当ホームページに掲載されている情報や活動内容は、可能な限り正確を期すよう努めておりますが、その完全性・正確性を保証するものではありません。予告なしに内容の変更や削除を行うことがあります。</p>
+                <p class="eng-text">While we strive to ensure that the information on this website is as accurate as possible, we do not guarantee its completeness or accuracy. Content may be changed or deleted without prior notice.</p>
+            </section>
 
-                <!-- 💡 修正箇所：免責事項ポップアップを文字エリアの内側に正しく配置しました -->
-                <div class="big-disclaimer-wrapper">
-                    <!-- 開閉用の隠しチェックボックス -->
-                    <input type="checkbox" id="popup-disclaimer-toggle" class="popup-check">
-                    
-                    <!-- ヘッダー右上に配置する起動ボタン -->
-                    <label for="popup-disclaimer-toggle" class="popup-open-btn">
-                        免責事項を確認する / Disclaimers
-                    </label>
-                    
-                    <!-- ボタンを押したら画面全体を覆う黒い背景 -->
-                    <div class="popup-overlay-bg">
-                        <!-- 大きく表示される免責事項の本体ボックス -->
-                        <div class="popup-content-window">
-                            <div class="popup-header">
-                                <h2>免責事項 / Disclaimers</h2>
-                                <label for="popup-disclaimer-toggle" class="popup-close-x">✕</label>
-                            </div>
-                            
-                            <div class="popup-body">
-                                <section class="popup-section-item">
-                                    <h3>情報の正確性について / Accuracy of Information</h3>
-                                    <p>当ホームページに掲載されている情報や活動内容は、可能な限り正確を期すよう努めておりますが、その完全性・正確性を保証するものではありません。予告なしに内容の変更や削除を行うことがあります。</p>
-                                    <p class="eng-text">While we strive to ensure that the information on this website is as accurate as possible, we do not guarantee its completeness or accuracy. Content may be changed or deleted without prior notice.</p>
-                                </section>
-                                
-                                <section class="popup-section-item">
-                                    <h3>損害等の責任について / Limitation of Liability</h3>
-                                    <p>当ホームページの利用、または掲載された情報によって生じたトラブル・損失・損害について、当同好会および学校側は<strong>一切</strong>の責任を負いかねますのであらかじめご了承ください。</p>
-                                    <p class="eng-text">The Railway Club and the school shall not be held liable for any trouble, loss, or damage arising from the use of this website or the information contained herein.</p>
-                                </section>
-                                
-                                <section class="popup-section-item">
-                                    <h3>外部リンクについて / External Links</h3>
-                                    <p>当ホームページからリンクやバナーなどによって他のサイトに移動された場合、<strong>その</strong>移動先サイトで提供される情報やサービス等について、<strong>当同好会および学校側は一切の責任を負いかねます。</strong></p>
-                                    <p class="eng-text">We assume no responsibility or liability for any information, services, or content provided on external websites linked from this site.</p>
-                                </section>
-                                <section class="popup-section-item">
-                                    <h3>著作権について / Copyright</h3>
-                                    <p>当ホームページに掲載されているすべてのコンテンツ（文章、写真、画像、動画等）の著作権は、当同好会または各権利者に帰属します。これらを無断で転載、複製、改変、販売、または直リンクする行為は固く禁じます。</P>
-                                    <p class="eng-text">All content on this website, including text, photographs, images, and videos, is protected by copyright owned by the Railway Club or their respective owners. Unauthorized reproduction, duplication, modification, distribution, or hotlinking of any content is strictly prohibited.</p>
-                                </section>
-                            </div>
-                            
-                            <div class="popup-footer">
-                                <label for="popup-disclaimer-toggle" class="popup-close-btn">確認して閉じる / Close</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- 免責事項ここまで -->
+            <section class="popup-section-item">
+                <h3>損害等の責任について / Limitation of Liability</h3>
+                <p>当ホームページの利用、または掲載された情報によって生じたトラブル・損失・損害について、当同好会および学校側は<strong>一切の責任を負いかねます</strong>のであらかじめご了承ください。</p>
+                <p class="eng-text">Please note that the Railway Club and the school shall not be held liable for any issues, loss, or damage arising from the use of this website or the information contained herein.</p>
+            </section>
 
+            <section class="popup-section-item">
+                <h3>外部リンクについて / Links to External Sites</h3>
+                <p>当ホームページからリンクやバナーなどによって他のサイトに移動された場合、その移動先サイトで提供される情報やサービス等について、当同好会および学校側は<strong>一切の責任を負いかねます。</strong></p>
+                <p class="eng-text">No responsibility or liability is assumed for any information, services, or content provided on external websites linked from this site.</p>
+            </section>
+
+            <section class="popup-section-item">
+                <h3>著作権について / Copyright</h3>
+                <p>当ホームページに掲載されているすべてのコンテンツ（文章、写真、画像、動画等）の著作権は、当同好会または各権利者に帰属します。これらを無断で転載、複製、改変、販売、または直リンクする行為は<strong>固く禁じます</strong>。</p>
+                <p class="eng-text">All content on this website, including text, photographs, images, and videos, is protected by copyright owned by the Railway Club or their respective owners. Unauthorized reproduction, duplication, modification, distribution, or hotlinking of any content is strictly prohibited.</p>
+            </section>
+
+            <section class="popup-section-item">
+                <h3>本ツールの利用について / Use of This Tool</h3>
+                <p>当ホームページで提供しているカスタム時計（倍速機能等を含む）の表示および動作について、その正確性や同期の完全性を保証するものではありません。本ツールの利用によって生じた、いかなるスケジュール上のトラブルや損害についても、当同好会および学校側は<strong>一切の責任を負いかねます。</strong></p>
+                <p class="eng-text">We do not guarantee the absolute accuracy or synchronization of the custom clock tool provided on this website. The Railway Club and the school assume no responsibility or liability for any scheduling issues, losses, or inconveniences resulting from the use of this tool.</p>
+            </section>
+
+            <div style="text-align: center; margin-top: 25px;">
+                <button id="close-disclaimer-btn" style="background: #333; color: #fff; padding: 8px 20px; border: none; border-radius: 4px; cursor: pointer;">確認して閉じる / Close</button>
             </div>
         </div>
-    </header>
-
-<nav class="global-nav">
-    <ul>
-        <li><a href="index.html">ホーム</a></li>
-        <li><a href="about.html">同好会紹介</a></li>
-        <li><a href="projects.html">活動・プロジェクト</a></li>
-        <li><a href="blog.html">ブログ</a></li>
-        <li><a href="links.html">リンク・SNS</a></li>
-    </ul>
-</nav>
-
-<div class="container">
-    <section class="maintenance-section">
-        <div class="maintenance-icon">⏳</div>
-        <h2 class="maintenance-title">カスタム時計 メンテナンス中</h2>
+    </div>
+    <script>
+        let virtualTime = new Date();
+        let speedInput = document.getElementById('speed');
+        let speedSettingGroup = document.getElementById('speedSettingGroup');
+        let controlsContainer = document.getElementById('controlsContainer');
+        let isTimeUp = false;
         
-        <p>いつもホームページをご利用いただきありがとうございます。</p>
-        <p>ただいま、カスタム時計ツールの<strong>「時刻指定機能の不具合」</strong>を修正するため、プログラムのアップデート作業を行っております。</p>
+        // 初期サイズ（vw単位）
+        let currentSize = 15;
 
-        <div class="maintenance-box">
-            <h3>⚠️ 修正内容と進捗</h3>
-            <p><strong>【現象】</strong> 時刻を手動指定しても <code>00:00:00</code> に強制的に戻ってしまう不具合</p>
-            <p><strong>【原因】</strong> 定期タイマー処理と、手動入力時の変数同期タイミングの競合</p>
-            <p><strong>【状態】</strong> 現在、改善コードのテストを行っています。修正版の公開時期は未定です。</p>
-        </div>
+        // 文字サイズを変更する関数
+        function changeFontSize(amount) {
+            currentSize += amount;
+            // 画面が崩れないように最小サイズ(5vw)と最大サイズ(30vw)を制限
+            if (currentSize < 5) currentSize = 5;
+            if (currentSize > 30) currentSize = 30;
+            
+            // CSS変数に新しいサイズを適用
+            document.documentElement.style.setProperty('--clock-size', currentSize + 'vw');
+        }
 
-        <p>部員の皆さん、および来訪者の皆様にはご不便をおかけしますが、作業完了まで今しばらくお待ちください。</p>
+        // 時刻をタップしたときにコントローラーの表示/非表示を切り替える関数
+        function toggleControls() {
+            controlsContainer.classList.toggle('hidden');
+        }
+
+        // 電子音を生成して鳴らす関数
+        function playAlarmSound() {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const audioCtx = new AudioContext();
+                
+                const times = [0, 0.2, 0.4];
+                times.forEach(delay => {
+                    const oscillator = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(880, audioCtx.currentTime + delay);
+                    
+                    gainNode.gain.setValueAtTime(0, audioCtx.currentTime + delay);
+                    gainNode.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + delay + 0.02);
+                    gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime + delay + 0.12);
+                    gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + delay + 0.15);
+                    
+                    oscillator.start(audioCtx.currentTime + delay);
+                    oscillator.stop(audioCtx.currentTime + delay + 0.15);
+                });
+            } catch (e) {
+                console.error("オーディオの再生に失敗しました:", e);
+            }
+        }
+
+        // 入力された「進む速さ」が正の数（プラス）になったら自動で停止を解除する関数
+        function checkSpeedValue() {
+            const currentSpeed = parseInt(speedInput.value);
+            if (!isNaN(currentSpeed) && currentSpeed >= 0) {
+                isTimeUp = false;
+            }
+        }
+
+        // 入力欄の初期値を現在の「時:分:00秒」にする関数
+        function updateInputPreset(dateObj) {
+            document.getElementById('customTime').value = 
+                `${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}:00`;
+        }
+
+        // 完全に「本物の現在時刻」に同期する関数
+        function syncToCurrentTime() {
+            const realNow = new Date();
+            virtualTime = new Date(realNow.getTime());
+            isTimeUp = false;
+            updateInputPreset(realNow);
+            updateClockDisplay();
+        }
+
+        // モード変更時に設定欄の表示を切り替える
+        function toggleMode() {
+            const mode = document.querySelector('input[name="clockMode"]:checked').value;
+            if (mode === 'normal') {
+                speedSettingGroup.style.opacity = '0.3';
+                speedInput.disabled = true;
+                isTimeUp = false;
+            } else {
+                speedSettingGroup.style.opacity = '1';
+                speedInput.disabled = false;
+                checkSpeedValue();
+            }
+        }
+
+        // ユーザーが指定した時間に時計を合わせる関数
+        function setTime() {
+            const timeVal = document.getElementById('customTime').value;
+            if (!timeVal) return;
+            
+            const [h, m, s] = timeVal.split(':');
+            virtualTime.setHours(parseInt(h), parseInt(m), s ? parseInt(s) : 0);
+            isTimeUp = false;
+            updateClockDisplay();
+        }
+
+        // 表示だけを更新する関数
+        function updateClockDisplay() {
+            const hours = String(virtualTime.getHours()).padStart(2, '0');
+            const minutes = String(virtualTime.getMinutes()).padStart(2, '0');
+            const seconds = String(virtualTime.getSeconds()).padStart(2, '0');
+            document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        // 1秒ごとに時間を進めるメイン処理
+        function tick() {
+            if (isTimeUp) return;
+
+            const mode = document.querySelector('input[name="clockMode"]:checked').value;
+            let secondsToAdd = 1; 
+            
+            if (mode === 'speed') {
+                secondsToAdd = parseInt(speedInput.value);
+                if (isNaN(secondsToAdd)) secondsToAdd = 15;
+            }
+            
+            const oldDate = virtualTime.getDate();
+            virtualTime.setSeconds(virtualTime.getSeconds() + secondsToAdd);
+            const newDate = virtualTime.getDate();
+            
+            if (secondsToAdd < 0) {
+                const isExactlyZero = (virtualTime.getHours() === 0 && virtualTime.getMinutes() === 0 && virtualTime.getSeconds() === 0);
+                const isDateChanged = (oldDate !== newDate);
+
+
+            }
+
+            updateClockDisplay();
+        }
+
+        // 起動時の初期化処理
+        const initNow = new Date();
+        virtualTime = new Date(initNow.getTime());
+        updateInputPreset(initNow);
+        updateClockDisplay();
+        toggleMode();
         
-        <a href="index.html" class="btn">トップページへ戻る</a>
-    </section>
-</div>
+        // 1秒ごとに実行
+        setInterval(tick, 1000);
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
 
-    <!-- 👣 フッター部分（全ページ共通） -->
-    <footer class="main-footer">
-        <div class="container">
-            <p>〒630-8305 奈良市東紀寺町1丁目60-1</p>
-            <p><a href="https://maps.app.goo.gl/8zeACxxbkrBPJu17A?g_st=ac" target="_blank" class="map-link">🌐 Googleマップアプリを開く</a></p>
-            <p class="copyright">&copy; 2026 奈良女子大学附属中等教育学校 鉄道同好会</p>
-        </div>
-    </footer>
+fullscreenBtn.addEventListener('click', () => {
+  // すでに全画面表示の場合は解除する
+  if (document.fullscreenElement) {
+    document.exitFullscreen();
+    fullscreenBtn.textContent = '全画面表示にする';
+  } else {
+    // 全画面表示を開始する
+    document.documentElement.requestFullscreen()
+      .then(() => {
+        fullscreenBtn.textContent = '全画面表示を解除';
+      })
+      .catch((err) => {
+        alert(`全画面表示に失敗しました: ${err.message}`);
+      });
+  }
+});
+
+// Escキーなどで全画面が解除されたとき、ボタンの文字を元に戻す
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement) {
+    fullscreenBtn.textContent = '全画面表示にする';
+  }
+});
+    // ページが開いた瞬間に、一回目の時計表示を実行（これで00:00:00になります）
+    updateClockDisplay();
+
+    // ----------------------------------------------------
+    // 免責事項ポップアップを開閉するためのプログラム
+    // ----------------------------------------------------
+    const openBtn = document.getElementById('open-disclaimer-btn');
+    const closeBtn = document.getElementById('close-disclaimer-btn');
+    const closeX = document.getElementById('close-disclaimer-x');
+    const overlay = document.getElementById('disclaimer-overlay');
+
+    if (openBtn && overlay) openBtn.addEventListener('click', () => overlay.style.display = 'flex');
+    if (closeBtn && overlay) closeBtn.addEventListener('click', () => overlay.style.display = 'none');
+    if (closeX && overlay) closeX.addEventListener('click', () => overlay.style.display = 'none');
+    if (overlay) {
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.style.display = 'none';
+        });
+    }
+    </script>
 
 </body>
 </html>
