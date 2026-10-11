@@ -212,7 +212,6 @@
 </head>
 <body>
 
-        <!-- 📸 ヘッダー部分（写真エリア） -->
             <!-- 📸 ヘッダー部分（写真エリア） -->
     <header class="main-header">
         <div class="header-image-container">
@@ -295,13 +294,13 @@
         <h2 class="maintenance-title">カスタム時計 メンテナンス中</h2>
         
         <p>いつもホームページをご利用いただきありがとうございます。</p>
-        <p>ただいま、カスタム時計ツールの<strong>「時刻指定機能の不具合（強制リセットバグ）」</strong>を修正するため、プログラムのアップデート作業を行っております。</p>
+        <p>ただいま、カスタム時計ツールの<strong>「時刻指定機能の不具合」</strong>を修正するため、プログラムのアップデート作業を行っております。</p>
 
         <div class="maintenance-box">
             <h3>⚠️ 修正内容と進捗</h3>
             <p><strong>【現象】</strong> 時刻を手動指定しても <code>00:00:00</code> に強制的に戻ってしまう不具合</p>
-            <p><strong>【原因】</strong> 定期タイマー処理と、手動入力時の変数同期タイミングの競合（JavaScriptのロジックエラー）</p>
-            <p><strong>【状態】</strong> 現在、改善コードのテストを行っています。間もなく修正版を公開いたします。</p>
+            <p><strong>【原因】</strong> 定期タイマー処理と、手動入力時の変数同期タイミングの競合</p>
+            <p><strong>【状態】</strong> 現在、改善コードのテストを行っています。修正版の公開時期は未定です。</p>
         </div>
 
         <p>部員の皆さん、および来訪者の皆様にはご不便をおかけしますが、作業完了まで今しばらくお待ちください。</p>
@@ -310,10 +309,14 @@
     </section>
 </div>
 
-<footer class="main-footer">
-    <p>〒630-8305 奈良市東紀寺町1丁目60-1</p>
-    <p class="copyright">&copy; 2026 奈良女子大学附属中等教育学校 鉄道同好会</p>
-</footer>
+    <!-- 👣 フッター部分（全ページ共通） -->
+    <footer class="main-footer">
+        <div class="container">
+            <p>〒630-8305 奈良市東紀寺町1丁目60-1</p>
+            <p><a href="https://maps.app.goo.gl/8zeACxxbkrBPJu17A?g_st=ac" target="_blank" class="map-link">🌐 Googleマップアプリを開く</a></p>
+            <p class="copyright">&copy; 2026 奈良女子大学附属中等教育学校 鉄道同好会</p>
+        </div>
+    </footer>
 
 </body>
 </html>
