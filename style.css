@@ -39,7 +39,7 @@ body {
 .header-image {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* どんな写真でも比率を崩さず綺麗に収める魔法のコード */
+    object-fit: cover; /* どんな写真でも比率を崩さず綺麗に収めるコード */
     object-position: center;
 }
 
@@ -69,7 +69,7 @@ body {
 .header-overlay h1 span {
     font-size: 2.8rem;
     font-weight: bold;
-    color: #ffd700; /* 「鉄道同好会」を金色にして目立たせる */
+    color: #ffd700; /* 「鉄道同好会」を金色(ほぼ黄色)にして目立たせる */
 }
 
 .subtitle {
@@ -499,15 +499,15 @@ h2 {
 .blog-recent-list {
     list-style: none;
     padding-left: 0;
-    margin-left: 0;   /* 👈 左側の余計な隙間をなくす */
+    margin-left: 0;   /* 左側の余計な隙間をなくす */
 }
 
 .blog-recent-list li {
     padding: 10px 0;
     border-bottom: 1px dashed #cbd5e1;
-    font-size: 0.95rem; /* 👈 スマホで文字が溢れないよう少し小さめに */
+    font-size: 0.95rem; /* スマホで文字が溢れないよう少し小さめに */
     line-height: 1.4;
-    display: flex;       /* 👈 日付とタイトルを綺麗に並べる */
+    display: flex;       /* 日付とタイトルを綺麗に並べる */
     align-items: flex-start;
 }
 
@@ -516,8 +516,8 @@ h2 {
     font-weight: bold;
     margin-right: 12px;
     font-size: 0.85rem;
-    white-space: nowrap; /* 👈 日付が途中で改行されるのを防ぐ */
-    background: #e2e8f0; /* 👈 日付を少し目立たせるグレーの背景 */
+    white-space: nowrap; /* 日付が途中で改行されるのを防ぐ */
+    background: #e2e8f0; /* 日付を少し目立たせるグレーの背景 */
     padding: 2px 6px;
     border-radius: 4px;
 }
@@ -606,7 +606,7 @@ h2 {
     transition: all 0.3s ease;
 }
 
-/* 真ん中にドカンと出る大きな白枠ウィンドウ */
+/* 真ん中に出る大きな白枠ウィンドウ */
 .popup-content-window {
     background: #fff;
     width: 90%;
@@ -623,7 +623,7 @@ h2 {
     transition: transform 0.3s ease;
 }
 
-/* 💡 【魔法のコード】チェックが入ったら画面全体とウィンドウを表示する */
+/* チェックが入ったら画面全体とウィンドウを表示する */
 .popup-check:checked ~ .popup-overlay-bg {
     visibility: visible;
     opacity: 1;
