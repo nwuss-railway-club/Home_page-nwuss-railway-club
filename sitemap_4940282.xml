@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <url>
+       <loc>https://nwuss-railway-club.github.io/Home_page-nwuss-railway-club/index.html</loc>
+       <lastmod>2026-10-15T23:31:41+00:00</lastmod>
+       <priority>1.0000</priority>
+  </url>
+  <url>
+       <loc>https://nwuss-railway-club.github.io/Home_page-nwuss-railway-club/about.html</loc>
+       <lastmod>2026-10-15T23:31:41+00:00</lastmod>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://nwuss-railway-club.github.io/Home_page-nwuss-railway-club/projects.html</loc>
+       <lastmod>2026-10-15T23:31:41+00:00</lastmod>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://nwuss-railway-club.github.io/Home_page-nwuss-railway-club/blog.html</loc>
+       <lastmod>2026-10-15T23:31:41+00:00</lastmod>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://nwuss-railway-club.github.io/Home_page-nwuss-railway-club/links.html</loc>
+       <lastmod>2026-10-15T23:31:41+00:00</lastmod>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://nwuss-railway-club.github.io/Home_page-nwuss-railway-club/clock.html</loc>
+       <lastmod>2026-10-15T23:31:41+00:00</lastmod>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://nwuss-railway-club.github.io/Home_page-nwuss-railway-club/</loc>
+       <lastmod>2026-10-15T23:31:41+00:00</lastmod>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://nwuss-railway-club.github.io/Home_page-nwuss-railway-club/news.html</loc>
+       <lastmod>2026-10-15T23:31:41+00:00</lastmod>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://nwuss-railway-club.github.io/Home_page-nwuss-railway-club/blog-archive.html</loc>
+       <lastmod>2026-10-15T23:31:41+00:00</lastmod>
+       <priority>0.6400</priority>
+  </url>
+</urlset>
