@@ -3,61 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>写真アルバム（準備中） | 奈良女子大学附属中等教育学校 鉄道同好会</title>
-        <link rel="icon" href="images/logo.png" type="image/png" sizes="32x32">
-    <link rel="apple-touch-icon" sizes="180x180" href="images/touch-icon.png">
+    <title>写真アルバム | 奈良女子大学附属中等教育学校 鉄道同好会</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="images/logo.png" type="image/png" sizes="32x32">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
     <style>
-        /* ==========================================
-           🚧 準備中ページ専用のスタイル
-           ========================================== */
-        .maintenance-container {
-            text-align: center;
-            padding: 50px 20px;
-        }
+    /* ==========================================
+   📸 アルバムページ専用の追加CSSスタイル
+   ========================================== */
+/* 写真が並ぶグリッドレイアウト（レスポンシブ対応） */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
 
-        .maintenance-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            animation: bounce 2s infinite;
-        }
+/* 各写真カードの装飾 */
+.gallery-item {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
 
-        .maintenance-title {
-            color: #004098;
-            font-size: 1.8rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
+.gallery-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
 
-        .maintenance-text {
-            font-size: 1.1rem;
-            color: #555;
-            line-height: 1.8;
-            margin-bottom: 30px;
-        }
+/* 画像表示エリア（マウスホバー時にじんわり拡大） */
+.gallery-img-wrapper {
+    display: block;
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+    background: #e9ecef;
+    cursor: pointer;
+}
 
-        .train-track-placeholder {
-            background: #e8f1f5;
-            border: 2px dashed #004098;
-            padding: 30px;
-            border-radius: 8px;
-            color: #004098;
-            font-weight: bold;
-            font-size: 1.2rem;
-            margin: 20px auto;
-            max-width: 500px;
-            letter-spacing: 4px;
-        }
+.gallery-img-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
 
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
+.gallery-item:hover .gallery-img-wrapper img {
+    transform: scale(1.05);
+}
+
+/* 写真の説明文（キャプション） */
+.gallery-caption {
+    padding: 15px;
+}
+
+.gallery-caption .photo-date {
+    font-size: 0.8rem;
+    color: #888;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.gallery-caption .photo-title {
+    font-size: 1rem;
+    color: #222;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.gallery-caption .photo-desc {
+    font-size: 0.85rem;
+    color: #555;
+    line-height: 1.4;
+}
+
+/* ==========================================
+   🔍 写真クリック拡大（ライトボックス）用のスタイル
+   ========================================== */
+/* 隠しチェックボックスは非表示に */
+.gallery-check {
+    display: none;
+}
+
+/* 拡大画面の初期状態（非表示・透明） */
+.gallery-lightbox {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.85); /* 85%の黒透過で写真を際立たせる */
+    z-index: 10000; /* メニューバーより手前に */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* 黒背景エリア全体をクリック可能にする（縮出カーソル） */
+.lightbox-overlay {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: zoom-out;
+    padding: 20px;
+}
+
+/* 拡大表示される写真のスタイル */
+.lightbox-overlay img {
+    max-width: 90%;
+    max-height: 80vh;
+    object-fit: contain; /* 縦横比を完全に維持 */
+    border-radius: 4px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    
+    /* ふわっとズームインする演出 */
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+}
+
+/* 右下の「✕ 閉じる」ラベル */
+.lightbox-close {
+    color: #fff;
+    margin-top: 15px;
+    font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.lightbox-overlay:hover .lightbox-close {
+    background: #e63946; /* ホバー時に赤色に変更 */
+}
+
+/* 【重要】画像がクリックされたら、その「すぐ隣にある拡大画面だけ」を表示 */
+.gallery-check:checked + .gallery-lightbox {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* 写真を等倍（定位置）にズームアップ */
+.gallery-check:checked + .gallery-lightbox .lightbox-overlay img {
+    transform: scale(1);
+}
+
+/* 写真拡大中に後ろのページをスクロールさせない設定 */
+body:has(.gallery-check:checked) {
+    overflow: hidden;
+}
+
     </style>
 </head>
 <body>
 
-        <!-- 📸 ヘッダー部分（写真エリア） -->
+<!-- 📸 ヘッダー部分（写真エリア） -->
     <header class="main-header">
         <div class="header-image-container">
             <!-- imagesフォルダの中の画像を表示します -->
@@ -123,40 +234,241 @@
         </div>
     </header>
 
-    <!-- 🧭 グローバルナビゲーション -->
+    <!-- 🧭 ナビゲーションメニュー（複数ページ構造用） -->
     <nav class="global-nav">
         <ul>
-            <li><a href="index.html">ホーム</a></li>
+            <li><a href="index.html" class="active">ホーム</a></li>
             <li><a href="about.html">同好会紹介</a></li>
-            <li><a href="project.html">活動・プロジェクト</a></li>
+            <li><a href="projects.html">活動</a></li>
             <li><a href="blog.html">ブログ</a></li>
             <li><a href="links.html">リンク・SNS</a></li>
-            <li><a href="gallery.html" class="active">写真集</a></li>
+            <li><a href="gallery.html">写真集</a></li>
         </ul>
     </nav>
 
-    <!-- 📝 メインコンテンツ（準備中メッセージ） -->
+    <!-- 📝 メインコンテンツ -->
     <main class="container">
-        <section class="maintenance-container">
-            <div class="maintenance-icon">🚧 🚃 🔨</div>
-            <div class="maintenance-title">只今、準備中</div>
-            
-            <p class="maintenance-text">
-                鉄道同好会の公式写真アルバムページは、現在公開に向けて準備中です。<br>
-            </p>
+        <section>
+            <h2>📸 鉄道写真ギャラリー</h2>
+            <p class="blog-lead">会員のみんなが日々の活動や撮影記、イベント等で撮影した鉄道写真・模型・白板アートなどのベストショットを展示しています！</p>
 
-            <div class="train-track-placeholder">
-                📦 COMING SOON 🛠️<br>
-                🚃━━━━━🚊━━━━━▶
-            </div>
+            <!-- 写真が並ぶグリッドレイアウト（前半：1〜3枚目） -->
+            <div class="gallery-grid">
 
-            <p class="maintenance-text" style="font-size: 0.95rem; color: #888; margin-top: 20px;">
-                開通まで今しばらくお待ちください。他のページは通常通り運行しております。
-            </p>
+                <!-- 1枚目：Nゲージ走行の様子 -->
+                <input type="checkbox" id="item-photo1" class="gallery-check">
+                <div class="gallery-lightbox">
+                    <label for="item-photo1" class="lightbox-overlay">
+                        <img src="images/header-autumn.jpg.jpg" alt="Nゲージ走行の様子（拡大）">
+                        <span class="lightbox-close">✕ 閉じる</span>
+                    </label>
+                </div>
+                <div class="gallery-item">
+                    <label for="item-photo1" class="gallery-img-wrapper">
+                        <img src="images/header-autumn.jpg.jpg" alt="Nゲージ走行の様子">
+                    </label>
+                    <div class="gallery-caption">
+                        <span class="photo-date">2026/09/24</span>
+                        <div class="photo-title">Nゲージ走行の様子</div>
+                        <p class="photo-desc">ホームページ開設記念の試作段階で掲載された、お気に入りのNゲージ走行カットです。</p>
+                    </div>
+                </div> 
+                <!-- 8枚目：ヘッダー用写真 -->
+                <input type="checkbox" id="item-photo8" class="gallery-check">
+                <div class="gallery-lightbox">
+                    <label for="item-photo8" class="lightbox-overlay">
+                        <img src="images/header20260929-.JPG" alt="ヘッダー用写真（拡大）">
+                        <span class="lightbox-close">✕ 閉じる</span>
+                    </label>
+                </div>
+                <div class="gallery-item">
+                    <label for="item-photo8" class="gallery-img-wrapper">
+                        <img src="images/header20260929-.JPG" alt="ヘッダー用写真">
+                    </label>
+                    <div class="gallery-caption">
+                        <span class="photo-date">2026/9/29</span>
+                        <div class="photo-title">ヘッダー用写真 </div>
+                        <p class="photo-desc"></p>
+                    </div>
+                </div>
 
-            <a href="index.html" class="btn">🏠 ホームへ戻る</a>
+                <!-- 2枚目：連絡白板イラスト -->
+                <input type="checkbox" id="item-photo2" class="gallery-check">
+                <div class="gallery-lightbox">
+                    <label for="item-photo2" class="lightbox-overlay">
+                        <img src="images/blog20261001.jpg" alt="卒業された先輩の連絡白板イラスト（拡大）">
+                        <span class="lightbox-close">✕ 閉じる</span>
+                    </label>
+                </div>
+                <div class="gallery-item">
+                    <label for="item-photo2" class="gallery-img-wrapper">
+                        <img src="images/blog20261001.jpg" alt="卒業された先輩の連絡白板イラスト">
+                    </label>
+                    <div class="gallery-caption">
+                        <span class="photo-date">2026/10/01</span>
+                        <div class="photo-title">卒業された先輩の連絡白板イラスト</div>
+                        <p class="photo-desc">2代前の会長先輩による超ハイクオリティなホワイトボードイラスト。</p>
+                    </div>
+                </div>
+
+                <!-- 3枚目：2026年度の立て看板 -->
+                <input type="checkbox" id="item-photo3" class="gallery-check">
+                <div class="gallery-lightbox">
+                    <label for="item-photo3" class="lightbox-overlay">
+                        <img src="images/blog20261012(6).jpg" alt="2026年度の立て看板（拡大）">
+                        <span class="lightbox-close">✕ 閉じる</span>
+                    </label>
+                </div>
+                <div class="gallery-item">
+                    <label for="item-photo3" class="gallery-img-wrapper">
+                        <img src="images/blog20261012(6).jpg" alt="2026年度の立て看板">
+                    </label>
+                    <div class="gallery-caption">
+                        <span class="photo-date">2026/10/12</span>
+                        <div class="photo-title">2026年度の立て看板</div>
+                        <p class="photo-desc">本年度の学園祭のためにみんなで製作した立て看板。仕上がりが例年より1週間も早かったです。</p>
+                    </div>
+                </div>
+                <!-- 4枚目：設営中…… -->
+                <input type="checkbox" id="item-photo4" class="gallery-check">
+                <div class="gallery-lightbox">
+                    <label for="item-photo4" class="lightbox-overlay">
+                        <img src="images/blog20261012(2).jpg" alt="設営中……（拡大）">
+                        <span class="lightbox-close">✕ 閉じる</span>
+                    </label>
+                </div>
+                <div class="gallery-item">
+                    <label for="item-photo4" class="gallery-img-wrapper">
+                        <img src="images/blog20261012(2).jpg" alt="設営中……">
+                    </label>
+                    <div class="gallery-caption">
+                        <span class="photo-date">2026/10/12</span>
+                        <div class="photo-title">大量に請求した机（設営中）</div>
+                        <p class="photo-desc">調子に乗って線路をほぼ全部使う設計図を描いた結果、一般学級2クラス分に相当する80個もの机を並べることに！</p>
+                    </div>
+                </div>
+
+                <!-- 5枚目：学園祭当日の連絡白板 -->
+                <input type="checkbox" id="item-photo5" class="gallery-check">
+                <div class="gallery-lightbox">
+                    <label for="item-photo5" class="lightbox-overlay">
+                        <img src="images/blog20261012(4).jpg" alt="学園祭当日の連絡白板（拡大）">
+                        <span class="lightbox-close">✕ 閉じる</span>
+                    </label>
+                </div>
+                <div class="gallery-item">
+                    <label for="item-photo5" class="gallery-img-wrapper">
+                        <img src="images/blog20261012(4).jpg" alt="学園祭当日の連絡白板">
+                    </label>
+                    <div class="gallery-caption">
+                        <span class="photo-date">2026/10/12</span>
+                        <div class="photo-title">学園祭当日の連絡白板</div>
+                        <p class="photo-desc">学園祭当日のブースに設置された案内板。</p>
+                    </div>
+                </div>
+
+                <!-- 6枚目：学園祭当日の様子 -->
+                <input type="checkbox" id="item-photo6" class="gallery-check">
+                <div class="gallery-lightbox">
+                    <label for="item-photo6" class="lightbox-overlay">
+                        <img src="images/blog20261012(1).jpg" alt="学園祭当日の様子（拡大）">
+                        <span class="lightbox-close">✕ 閉じる</span>
+                    </label>
+                </div>
+                <div class="gallery-item">
+                    <label for="item-photo6" class="gallery-img-wrapper">
+                        <img src="images/blog20261012(1).jpg" alt="学園祭当日の様子">
+                    </label>
+                    <div class="gallery-caption">
+                        <span class="photo-date">2026/10/12</span>
+                        <div class="photo-title">学園祭当日の様子</div>
+                        <p class="photo-desc"></p>
+                    </div>
+                </div>
+
+                <!-- 7枚目：学園祭当日の様子 -->
+                <input type="checkbox" id="item-photo7" class="gallery-check">
+                <div class="gallery-lightbox">
+                    <label for="item-photo7" class="lightbox-overlay">
+                        <img src="images/blog20261012(3).jpg" alt="学園祭当日の様子（拡大）">
+                        <span class="lightbox-close">✕ 閉じる</span>
+                    </label>
+                </div>
+                <div class="gallery-item">
+                    <label for="item-photo7" class="gallery-img-wrapper">
+                        <img src="images/blog20261012(3).jpg" alt="学園祭当日の様子">
+                    </label>
+                    <div class="gallery-caption">
+                        <span class="photo-date">2026/10/12</span>
+                        <div class="photo-title">学園祭当日の様子 </div>
+                        <p class="photo-desc"></p>
+                    </div>
+                </div>
+                <!-- 10枚目：ホームページ用ロゴ -->
+                <input type="checkbox" id="item-photo10" class="gallery-check">
+                <div class="gallery-lightbox">
+                    <label for="item-photo10" class="lightbox-overlay">
+                        <img src="images/logo.png" alt="ホームページ用ロゴ（拡大）">
+                        <span class="lightbox-close">✕ 閉じる</span>
+                    </label>
+                </div>
+                <div class="gallery-item">
+                    <label for="item-photo10" class="gallery-img-wrapper">
+                        <img src="images/logo.png" alt="ホームページ用ロゴ">
+                    </label>
+                    <div class="gallery-caption">
+                        <span class="photo-date">2026/10/15</span>
+                        <div class="photo-title">ホームページ用ロゴ </div>
+                        <p class="photo-desc"></p>
+                    </div>
+                </div>
+                <!-- 9枚目：ヘッダー用写真 -->
+                <input type="checkbox" id="item-photo9" class="gallery-check">
+                <div class="gallery-lightbox">
+                    <label for="item-photo9" class="lightbox-overlay">
+                        <img src="images/header20261017-.JPG" alt="ヘッダー用写真（拡大）">
+                        <span class="lightbox-close">✕ 閉じる</span>
+                    </label>
+                </div>
+                <div class="gallery-item">
+                    <label for="item-photo9" class="gallery-img-wrapper">
+                        <img src="images/header20261017-.JPG" alt="ヘッダー用写真">
+                    </label>
+                    <div class="gallery-caption">
+                        <span class="photo-date">2026/10/17</span>
+                        <div class="photo-title">ヘッダー用写真 </div>
+                        <p class="photo-desc"></p>
+                    </div>
+                </div>
+                <!-- 11枚目：ヘッダー用写真 -->
+                <input type="checkbox" id="item-photo11" class="gallery-check">
+                <div class="gallery-lightbox">
+                    <label for="item-photo11" class="lightbox-overlay">
+                        <img src="images/touch-icon.png" alt="ホームページ用ロゴ（拡大）">
+                        <span class="lightbox-close">✕ 閉じる</span>
+                    </label>
+                </div>
+                <div class="gallery-item">
+                    <label for="item-photo11" class="gallery-img-wrapper">
+                        <img src="images/touch-icon.png" alt="ホームページ用ロゴ">
+                    </label>
+                    <div class="gallery-caption">
+                        <span class="photo-date">2026/10/21</span>
+                        <div class="photo-title">ホームページ用ロゴ </div>
+                        <p class="photo-desc"></p>
+                    </div>
+                </div>
+                
+            </div> <!-- gallery-grid の閉じタグ -->
         </section>
     </main>
+
+    <!-- 👣 フッター -->
+    <footer class="main-footer">
+        <p>〒630-8305 奈良市東紀寺町1丁目60-1</p>
+        <p><a href="https://google.com..." target="_blank" class="map-link">🌐 Googleマップアプリを開く</a></p>
+        <p class="copyright">© 2026 奈良女子大学附属中等教育学校 鉄道同好会</p>
+    </footer>
 
 </body>
 </html>
