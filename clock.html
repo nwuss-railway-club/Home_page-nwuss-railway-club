@@ -190,7 +190,10 @@
             <input type="time" id="customTime" step="1">
             <button onclick="setTime()">設定</button>
             <!-- コントローラー連動型コピーライト -->
-            <p style="position: fixed !important; top: calc(100vh - 35px) !important; left: 50% !important; transform: translateX(-50%) !important; color: rgba(255,255,255,0.6) !important; font-size: 0.8em !important; margin: 0 !important; white-space: nowrap !important; z-index: 9999 !important; pointer-events: none !important;">© 2026 奈良女子大学附属中等教育学校 鉄道同好会</p>
+<p style="position: fixed !important; top: calc(100vh - 35px) !important; left: 50% !important; transform: translateX(-50%) !important; color: rgba(255,255,255,0.6) !important; font-size: 0.8em !important; margin: 0 !important; white-space: nowrap !important; z-index: 9999 !important; pointer-events: none !important;">
+    © <span id="copyright-year">2026</span> 奈良女子大学附属中等教育学校 鉄道同好会
+</p>
+
         </div>
     </div>
 
@@ -375,12 +378,17 @@
             updateClockDisplay();
         }
 
-        // 起動時の初期化処理
-        const initNow = new Date();
-        virtualTime = new Date(initNow.getTime());
-        updateInputPreset(initNow);
-        updateClockDisplay();
-        toggleMode();
+// 起動時の初期化処理
+const initNow = new Date();
+virtualTime = new Date(initNow.getTime());
+
+// コピーライトの年号を自動更新する処理
+const startYear = 2026;
+const currentYear = initNow.getFullYear();
+const yearElement = document.getElementById('copyright-year');
+if (yearElement) {
+    yearElement.textContent = currentYear > startYear ? `${startYear}-${currentYear}` : `${startYear}`;
+}
         
         // 1秒ごとに実行
         setInterval(tick, 1000);
